@@ -3,6 +3,7 @@ API 路由定义。
 
 提供 RESTful 接口：
 - POST /api/convert — 小说文本转剧本
+- POST /api/upload — 上传并解析文件（.docx / .txt）
 - GET  /api/schema  — 获取 Schema 定义
 - GET  /api/providers — 获取支持的模型提供商列表
 - GET  /api/sample-novel — 获取示例小说
@@ -13,11 +14,12 @@ import logging
 from pathlib import Path
 
 import yaml
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
 from app.services.converter import convert_novel_to_screenplay, PROVIDERS
+from app.services.file_parser import extract_text_from_docx_bytes
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -136,6 +138,51 @@ async def get_providers():
             for key, info in PROVIDERS.items()
         },
     }
+
+
+@router.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """
+    上传并解析文件内容。
+
+    支持格式：
+    - .txt — 直接返回文本内容
+    - .docx — 提取段落和表格文本
+
+    返回解析后的纯文本，供前端填入编辑器。
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="未选择文件")
+
+    ext = Path(file.filename).suffix.lower()
+
+    try:
+        data = await file.read()
+
+        if ext == ".docx":
+            text = extract_text_from_docx_bytes(data)
+        elif ext == ".txt":
+            text = data.decode("utf-8")
+        elif ext == ".md":
+            text = data.decode("utf-8")
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"不支持的文件格式: {ext}，仅支持 .txt / .docx / .md",
+            )
+
+        if not text.strip():
+            raise HTTPException(status_code=400, detail="文件内容为空")
+
+        return {"success": True, "text": text, "filename": file.filename, "length": len(text)}
+
+    except HTTPException:
+        raise
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="文件编码不是 UTF-8，请使用 .docx 格式")
+    except Exception as e:
+        logger.exception("文件解析失败")
+        raise HTTPException(status_code=500, detail=f"文件解析失败: {e}")
 
 
 @router.get("/schema")
