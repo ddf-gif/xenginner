@@ -715,6 +715,21 @@
         .result-bar .acts {
             display: flex;
             gap: 0.3rem;
+            align-items: center;
+        }
+
+        .result-bar .acts .sep {
+            width: 1px;
+            height: 16px;
+            background: var(--border-card);
+            margin: 0 0.15rem;
+        }
+
+        .result-bar .acts .export-label {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            letter-spacing: 0.04em;
+            margin-right: 0.15rem;
         }
 
         /* ── Convert Button ── */
@@ -1315,7 +1330,11 @@
                         <span class="meta" id="resultMeta"></span>
                         <div class="acts">
                             <button class="btn btn-subtle btn-xs" onclick="copyYaml()">📋 复制</button>
-                            <button class="btn btn-warm btn-xs" onclick="dlYaml()">⬇ 下载</button>
+                            <span class="sep"></span>
+                            <span class="export-label">导出</span>
+                            <button class="btn btn-ghost btn-xs" onclick="exportHTML()" title="导出为 HTML">📄</button>
+                            <button class="btn btn-ghost btn-xs" onclick="exportMD()" title="导出为 Markdown">📝</button>
+                            <button class="btn btn-ghost btn-xs" onclick="exportTXT()" title="导出为纯文本">📃</button>
                         </div>
                     </div>
                 </div>
@@ -1445,6 +1464,7 @@
            ═══════════════════════════════════════════════════════════ */
 
         let Y = '';
+        let D = null;
 
         // ── Init ──
         window.addEventListener('DOMContentLoaded', async () => {
@@ -1588,6 +1608,8 @@
         }
 
         function showRes(y, st, src, data) {
+            D = data; // save for export
+
             // YAML view
             document.getElementById('yamlBlock').innerHTML = hl(y);
             document.getElementById('yamlBlock').style.display = 'block';
@@ -1748,10 +1770,209 @@
 
         function dlYaml() {
             if (!Y) return;
-            const b = new Blob([Y], {type:'text/yaml;charset=utf-8'});
+            dlFile(Y, 'screenplay.yaml', 'text/yaml');
+            toast('⬇ YAML 已下载');
+        }
+
+        // ═══ Multi-Format Export ═══
+        function dlFile(content, filename, mime) {
+            const b = new Blob([content], {type: mime + ';charset=utf-8'});
             const u = URL.createObjectURL(b);
-            const a = document.createElement('a'); a.href = u; a.download = 'screenplay.yaml'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u);
-            toast('⬇ 已下载');
+            const a = document.createElement('a'); a.href = u; a.download = filename;
+            document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u);
+        }
+
+        function exportHTML() {
+            if (!D) return toast('⚠️ 无数据可导出');
+            let h = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">';
+            h += '<title>' + esc(D.title || '剧本') + '</title>';
+            h += '<style>';
+            h += 'body{font-family:Georgia,"Noto Serif SC",serif;max-width:800px;margin:2rem auto;padding:0 1.5rem;background:#1a1612;color:#eae0d0;line-height:1.7}';
+            h += 'h1{font-family:Georgia,serif;font-size:1.8rem;text-align:center;color:#d4a373;font-style:italic;margin-bottom:0.5rem;letter-spacing:0.04em}';
+            h += '.chars{text-align:center;color:#7d7261;font-size:0.85rem;margin-bottom:2rem}';
+            h += '.act-div{text-align:center;margin:2rem 0 1rem;color:#7d7261;font-size:0.9rem;font-style:italic;letter-spacing:0.1em;border-top:1px solid rgba(212,163,115,0.15);padding-top:1rem}';
+            h += '.scene{margin-bottom:1.5rem;padding-left:0.5rem;border-left:2px solid rgba(212,163,115,0.2)}';
+            h += '.scene-hd{font-weight:700;color:#d4a373;font-size:1rem;margin-bottom:0.4rem}';
+            h += '.scene-hd .meta{font-weight:400;color:#7d7261;font-size:0.85rem}';
+            h += '.scene-chars{color:#7d7261;font-size:0.8rem;margin-bottom:0.6rem}';
+            h += '.evt{margin:0.35rem 0;line-height:1.65}';
+            h += '.evt.stage{font-style:italic;color:#7d7261;font-size:0.9rem}';
+            h += '.evt.action .c{font-weight:600;color:#c4b8a5}';
+            h += '.evt.dialogue .c{font-weight:700;color:#eae0d0}';
+            h += '.evt.dialogue .e{color:#7d7261;font-style:italic;font-size:0.8rem;margin-left:0.3rem}';
+            h += '.evt.dialogue .l{display:block;padding-left:1.5rem;color:#c4b8a5;margin-top:0.05rem}';
+            h += '.evt.vo{font-style:italic;color:#7d7261;padding-left:0.5rem;border-left:2px solid rgba(255,255,255,0.05)}';
+            h += '.evt.vo .vl{color:#7d7261;font-size:0.8rem}';
+            h += '.evt.vo .vc{color:#c4b8a5}';
+            h += '.footer{text-align:center;color:#5a5043;font-size:0.75rem;margin-top:2.5rem;padding-top:1rem;border-top:1px solid rgba(212,163,115,0.1)}';
+            h += '@media print{body{background:#fff;color:#222}.scene-hd{color:#8b5a2b}}';
+            h += '</style></head><body>';
+
+            h += '<h1>' + esc(D.title || '') + '</h1>';
+
+            const chars = D.characters || [];
+            if (chars.length) {
+                h += '<div class="chars">' + chars.map(c => esc(c.name)).join(' · ') + '</div>';
+            }
+
+            for (const act of D.acts || []) {
+                h += '<div class="act-div">— 第 ' + act.act_number + ' 幕 —</div>';
+                for (const scene of act.scenes || []) {
+                    h += '<div class="scene">';
+                    h += '<div class="scene-hd">【' + scene.scene_number + '】' + esc(scene.location) + ' <span class="meta">· ' + esc(scene.time) + '</span></div>';
+                    if (scene.characters_present && scene.characters_present.length) {
+                        h += '<div class="scene-chars">出场：' + scene.characters_present.map(c => esc(c)).join('、') + '</div>';
+                    }
+                    for (const evt of scene.events || []) {
+                        h += renderEventHTML(evt);
+                    }
+                    h += '</div>';
+                }
+            }
+
+            h += '<div class="footer">由 AI 小说转剧本工具生成 · screenplay.yaml</div>';
+            h += '</body></html>';
+
+            dlFile(h, 'screenplay.html', 'text/html');
+            toast('✅ HTML 已下载');
+        }
+
+        function renderEventHTML(evt) {
+            const t = evt.type || '';
+            const c = evt.character || '';
+            const l = evt.line || '';
+            const d = evt.description || '';
+            const e = evt.emotion || '';
+            const txt = evt.text || '';
+
+            switch (t) {
+                case 'stage_direction':
+                    return '<div class="evt stage">' + esc(d) + '</div>';
+                case 'action':
+                    return '<div class="evt action"><span class="c">' + esc(c) + '</span> ' + esc(d) + '</div>';
+                case 'dialogue': {
+                    let dt = '<div class="evt dialogue"><span class="c">' + esc(c) + '</span>';
+                    if (e) dt += '<span class="e">（' + esc(e) + '）</span>';
+                    dt += '<span class="l">' + esc(l) + '</span></div>';
+                    return dt;
+                }
+                case 'voiceover':
+                    return '<div class="evt vo"><span class="vl">' + esc(c || '旁白') + '</span> <span class="vc">(V.O.)</span><br>' + esc(txt) + '</div>';
+                default:
+                    return '';
+            }
+        }
+
+        function exportMD() {
+            if (!D) return toast('⚠️ 无数据可导出');
+            let m = '# ' + (D.title || '剧本') + '\n\n';
+
+            const chars = D.characters || [];
+            if (chars.length) {
+                m += '## 出场角色\n';
+                for (const c of chars) {
+                    m += '- **' + c.name + '**：' + (c.description || '') + '\n';
+                }
+                m += '\n';
+            }
+
+            for (const act of D.acts || []) {
+                m += '---\n## 第 ' + act.act_number + ' 幕\n\n';
+                for (const scene of act.scenes || []) {
+                    m += '### 【场景 ' + scene.scene_number + '】' + scene.location + ' · ' + scene.time + '\n\n';
+                    if (scene.characters_present && scene.characters_present.length) {
+                        m += '*出场：' + scene.characters_present.join('、') + '*\n\n';
+                    }
+                    for (const evt of scene.events || []) {
+                        m += renderEventMD(evt);
+                    }
+                }
+            }
+
+            m += '\n---\n*由 AI 小说转剧本工具生成*\n';
+            dlFile(m, 'screenplay.md', 'text/markdown');
+            toast('✅ Markdown 已下载');
+        }
+
+        function renderEventMD(evt) {
+            const t = evt.type || '';
+            const c = evt.character || '';
+            const l = evt.line || '';
+            const d = evt.description || '';
+            const e = evt.emotion || '';
+            const txt = evt.text || '';
+
+            switch (t) {
+                case 'stage_direction':
+                    return '*' + d + '*\n\n';
+                case 'action':
+                    return '**' + c + '** ' + d + '\n\n';
+                case 'dialogue': {
+                    let md = '**' + c + '**';
+                    if (e) md += '（*' + e + '*）';
+                    md += '\n> ' + l + '\n\n';
+                    return md;
+                }
+                case 'voiceover':
+                    return '*『' + (c || '旁白') + '』' + txt + '*\n\n';
+                default:
+                    return '\n';
+            }
+        }
+
+        function exportTXT() {
+            if (!D) return toast('⚠️ 无数据可导出');
+            let t = D.title || '剧本';
+            t += '\n' + '='.repeat(t.length) + '\n\n';
+
+            const chars = D.characters || [];
+            if (chars.length) {
+                t += '【出场角色】\n';
+                t += chars.map(c => c.name + '：' + (c.description || '')).join('\n') + '\n\n';
+            }
+
+            for (const act of D.acts || []) {
+                t += '\n- - - 第 ' + act.act_number + ' 幕 - - -\n\n';
+                for (const scene of act.scenes || []) {
+                    t += '【场景 ' + scene.scene_number + '】' + scene.location + ' · ' + scene.time + '\n';
+                    if (scene.characters_present && scene.characters_present.length) {
+                        t += '  出场：' + scene.characters_present.join('、') + '\n';
+                    }
+                    for (const evt of scene.events || []) {
+                        t += renderEventTXT(evt);
+                    }
+                }
+            }
+
+            t += '\n--- 由 AI 小说转剧本工具生成 ---\n';
+            dlFile(t, 'screenplay.txt', 'text/plain');
+            toast('✅ 纯文本已下载');
+        }
+
+        function renderEventTXT(evt) {
+            const type = evt.type || '';
+            const c = evt.character || '';
+            const l = evt.line || '';
+            const d = evt.description || '';
+            const e = evt.emotion || '';
+            const txt = evt.text || '';
+
+            switch (type) {
+                case 'stage_direction':
+                    return '  『' + d + '』\n';
+                case 'action':
+                    return '  [' + c + '] ' + d + '\n';
+                case 'dialogue': {
+                    let line = c;
+                    if (e) line += '（' + e + '）';
+                    line += '\n    ' + l + '\n';
+                    return line;
+                }
+                case 'voiceover':
+                    return '  （' + (c || '旁白') + '）' + txt + '\n';
+                default:
+                    return '';
+            }
         }
 
         // ═══ UI Helpers ═══
