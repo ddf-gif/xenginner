@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 小说转剧本工具</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <style>
+        :root {
+            --spacing: 1rem;
+        }
+        .hero {
+            text-align: center;
+            padding: 2rem 0 1rem;
+        }
+        .hero hgroup h1 {
+            --font-size: 2.25rem;
+            margin-bottom: 0.25rem;
+        }
+        .hero hgroup p {
+            color: var(--muted-color);
+            margin-top: 0;
+        }
+        .converter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        @media (max-width: 768px) {
+            .converter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .panel {
+            display: flex;
+            flex-direction: column;
+        }
+        .panel label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .panel textarea {
+            flex: 1;
+            min-height: 400px;
+            font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+            font-size: 0.875rem;
+            resize: vertical;
+        }
+        .panel .output-area {
+            flex: 1;
+            min-height: 400px;
+            background: #f5f5f5;
+            border: 1px solid #d0d0d0;
+            border-radius: var(--border-radius);
+            padding: 0.75rem;
+            font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            position: relative;
+        }
+        .output-area .placeholder {
+            color: var(--muted-color);
+            font-family: sans-serif;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 6rem;
+        }
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .stats-bar {
+            display: flex;
+            gap: 1.5rem;
+            padding: 0.5rem 0;
+            color: var(--muted-color);
+            font-size: 0.85rem;
+        }
+        .stats-bar span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .error-message {
+            color: #d32f2f;
+            background: #fce4e4;
+            border-radius: var(--border-radius);
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        .loading-spinner {
+            display: none;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--primary);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .sample-btn {
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            margin-left: 0.5rem;
+        }
+        details {
+            margin-top: 2rem;
+        }
+        details pre {
+            font-size: 0.78rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        /* 深色模式默认跟随系统，Pico 已自动支持 */
+    </style>
+</head>
+<body>
+    <main class="container">
+        <!-- 标题区 -->
+        <div class="hero">
+            <hgroup>
+                <h1>📖→🎬 AI 小说转剧本工具</h1>
+                <p>将小说文本自动转换为结构化 YAML 剧本，快速获得可编辑的剧本初稿</p>
+            </hgroup>
+        </div>
+
+        <!-- 转换器主体 -->
+        <div class="converter-grid">
+            <!-- 左栏：输入 -->
+            <div class="panel">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                    <label for="novel-input">📄 小说原文</label>
+                    <button class="outline small sample-btn" id="loadSampleBtn" onclick="loadSample()">
+                        加载示例小说
+                    </button>
+                </div>
+                <textarea id="novel-input" placeholder="在此粘贴小说文本…&#10;&#10;支持多章节内容，系统将按章节自动分幕。">第一章
+林晓舟把最后一只玻璃杯倒扣在沥水架上，指尖在杯沿上轻轻摩挲。窗外的天色已经沉了下来。
+
+"小林，别擦了，杯子都要被你擦薄了。"苏晚晴从柜台后面抬起头。
+
+林晓舟转过身来："陈默呢？"
+
+"在后面修他的服务器。"苏晚晴走到窗边，"小林，周阿姨今天又来过了。"
+
+"她说什么？"
+
+"说下个月房租要涨百分之二十。"
+</textarea>
+            </div>
+
+            <!-- 右栏：输出 -->
+            <div class="panel">
+                <label>🎬 剧本输出 (YAML)</label>
+                <div class="output-area" id="output-area">
+                    <div class="placeholder" id="placeholder">
+                        点击「转换」按钮生成剧本 ✨
+                    </div>
+                    <div id="yaml-content" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工具栏 -->
+        <div class="toolbar" style="margin-top:1rem;">
+            <button id="convertBtn" onclick="convert()">
+                <span class="loading-spinner" id="spinner"></span>
+                <span id="btnText">🚀 转换</span>
+            </button>
+            <button class="outline" id="downloadBtn" onclick="downloadYaml()" disabled>
+                ⬇ 下载 YAML
+            </button>
+            <button class="outline secondary" id="copyBtn" onclick="copyYaml()" disabled>
+                📋 复制
+            </button>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="stats-bar" id="stats-bar"></div>
+
+        <!-- 错误信息 -->
+        <div class="error-message" id="error-message"></div>
+
+        <!-- Schema 说明（可折叠） -->
+        <details>
+            <summary>📐 YAML Schema 说明</summary>
+            <pre id="schema-display">加载中...</pre>
+        </details>
+    </main>
+
+    <script>
+        // ── 状态 ──
+        let lastYamlText = "";
+
+        // ── 页面加载时获取 Schema ──
+        window.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const res = await fetch("/api/schema");
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById("schema-display").textContent = data.yaml_text;
+                } else {
+                    document.getElementById("schema-display").textContent = "加载 Schema 失败";
+                }
+            } catch {
+                document.getElementById("schema-display").textContent = "无法连接到服务器";
+            }
+        });
+
+        // ── 加载示例小说 ──
+        async function loadSample() {
+            try {
+                const res = await fetch("/api/sample-novel");
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById("novel-input").value = data.text;
+                    showError("");
+                }
+            } catch {
+                showError("无法加载示例小说（文件可能不存在）");
+            }
+        }
+
+        // ── 核心转换 ──
+        async function convert() {
+            const input = document.getElementById("novel-input").value.trim();
+            if (!input) {
+                showError("请先输入小说文本");
+                return;
+            }
+
+            setLoading(true);
+            showError("");
+            document.getElementById("stats-bar").innerHTML = "";
+
+            try {
+                const res = await fetch("/api/convert", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ novel_text: input, temperature: 0.3 }),
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    displayYaml(result.yaml_text, result.stats);
+                    lastYamlText = result.yaml_text;
+                    document.getElementById("downloadBtn").disabled = false;
+                    document.getElementById("copyBtn").disabled = false;
+                } else {
+                    showError(result.error || "转换失败，请重试");
+                    clearYamlOutput();
+                }
+            } catch (err) {
+                showError("网络错误: " + err.message);
+                clearYamlOutput();
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // ── UI 辅助函数 ──
+
+        function displayYaml(yamlText, stats) {
+            const output = document.getElementById("yaml-content");
+            const placeholder = document.getElementById("placeholder");
+            output.textContent = yamlText;
+            output.style.display = "block";
+            placeholder.style.display = "none";
+
+            // 统计
+            if (stats) {
+                const bar = document.getElementById("stats-bar");
+                bar.innerHTML = `
+                    <span>👤 ${stats.characters} 个角色</span>
+                    <span>🎭 ${stats.acts} 幕</span>
+                    <span>🏠 ${stats.scenes} 个场景</span>
+                    <span>📋 ${stats.events} 个事件</span>
+                `;
+            }
+        }
+
+        function clearYamlOutput() {
+            document.getElementById("yaml-content").style.display = "none";
+            document.getElementById("placeholder").style.display = "block";
+            document.getElementById("stats-bar").innerHTML = "";
+            lastYamlText = "";
+            document.getElementById("downloadBtn").disabled = true;
+            document.getElementById("copyBtn").disabled = true;
+        }
+
+        function setLoading(loading) {
+            document.getElementById("spinner").style.display = loading ? "inline-block" : "none";
+            document.getElementById("btnText").textContent = loading ? "转换中..." : "🚀 转换";
+            document.getElementById("convertBtn").disabled = loading;
+        }
+
+        function showError(msg) {
+            const el = document.getElementById("error-message");
+            if (msg) {
+                el.textContent = msg;
+                el.style.display = "block";
+            } else {
+                el.style.display = "none";
+                el.textContent = "";
+            }
+        }
+
+        // ── 下载 ──
+        function downloadYaml() {
+            if (!lastYamlText) return;
+            const blob = new Blob([lastYamlText], { type: "text/yaml;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "screenplay.yaml";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ── 复制 ──
+        async function copyYaml() {
+            if (!lastYamlText) return;
+            try {
+                await navigator.clipboard.writeText(lastYamlText);
+                const btn = document.getElementById("copyBtn");
+                const orig = btn.textContent;
+                btn.textContent = "✅ 已复制";
+                setTimeout(() => btn.textContent = orig, 1500);
+            } catch {
+                alert("复制失败，请手动选择复制");
+            }
+        }
+    </script>
+</body>
+</html>

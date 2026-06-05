@@ -1,0 +1,603 @@
+# ============================================================
+# 小说转剧本 YAML 数据结构 Schema
+# ============================================================
+# 字段命名规则：英文小写 + 下划线
+# 必填字段标记：[required]
+# 可选字段标记：[optional]
+# 未来可扩展字段：以 # FUTURE 注释标注
+# ============================================================
+
+# --------------------------------------------------
+# 顶层：剧本根对象 [required]
+# --------------------------------------------------
+# 整个 YAML 文件的根是一个字典，包含剧本的完整信息。
+title: "拾光咖啡馆"          # [required] 剧本标题，字符串
+# FUTURE: subtitle 副标题
+# FUTURE: author  编剧/作者署名
+# FUTURE: version 剧本版本号
+# FUTURE: based_on 原著出处（如基于某部小说改编）
+
+# --------------------------------------------------
+# characters: 角色列表 [required]
+# --------------------------------------------------
+# 每个角色用一个字典描述。至少列出所有有台词的出场角色。
+# FUTURE: 可扩展 age（年龄）、actor（演员建议）、
+#         voice_type（音色）、personality（性格标签）
+# FUTURE: 可扩展 avatar（角色头像或参考图路径）
+characters:
+  - name: "林晓舟"           # [required] 角色姓名，作为唯一标识符
+    description: "拾光咖啡馆店主，沉稳内敛，做事细致，面临经营压力仍努力维持。"
+    # FUTURE: age: 27
+    # FUTURE: personality: ["细腻", "责任感强", "略有优柔寡断"]
+  - name: "苏晚晴"
+    description: "合伙人，干练果断，善于谈判和策划，是三人中的行动派。"
+  - name: "陈默"
+    description: "合伙人兼技术担当，负责点单系统和算法，性格直率，偶尔抱怨但重情义。"
+  - name: "周阿姨"
+    description: "房东，看似精明实际善良，暗地里帮助三个年轻人。"
+  - name: "外卖员"
+    description: "受人之托送绿萝的年轻人，戏份很少。"
+  # FUTURE: "醇品经理" — 后期可扩展的配角
+
+# --------------------------------------------------
+# acts: 幕的列表 [required]
+# --------------------------------------------------
+# 按"幕"组织剧本结构，每幕可包含多个场景。
+# FUTURE: 每幕可扩展 synopsis（幕概要）、duration（建议时长）
+acts:
+  # ======================================================
+  # 第一幕
+  # ======================================================
+  - act_number: 1            # [required] 幕序号，整数
+    # FUTURE: synopsis: "夜色降临，拾光咖啡馆面临房租上涨和收购压力，三人各怀心事。"
+    scenes:
+      # --------------------------------------------------
+      # 场景 1-1：拾光咖啡馆内（傍晚→夜晚）
+      # --------------------------------------------------
+      - scene_number: 1       # [required] 场景序号，整数
+        location: "拾光咖啡馆内"   # [required] 地点，字符串
+        time: "傍晚至夜晚"         # [required] 时间描述，字符串
+        # FUTURE: lighting: "暖黄射灯为主，窗外天色渐暗，橘黄路灯透入"
+        # FUTURE: sound: "咖啡机低鸣声、水流声、远处车流声"
+        # FUTURE: camera: "中全景交代环境 → 近景捕捉人物表情"
+        characters_present:   # [required] 本场景出场角色名列表
+          - "林晓舟"
+          - "苏晚晴"
+          - "陈默"
+        events:               # [required] 事件列表，按时间顺序排列
+          # --- 事件 1：环境描写 / 舞台指示 ---
+          - type: "stage_direction"  # [required] 事件类型
+            description: "林晓舟把最后一只玻璃杯倒扣在沥水架上，指尖在杯沿上轻轻摩挲。窗外梧桐树的影子斜斜地投在磨砂玻璃门上。"
+          # --- 事件 2：对话 ---
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "小林，别擦了，杯子都要被你擦薄了。"
+            emotion: "调侃"          # [optional] 情感标记
+          # --- 事件 3：动作 ---
+          - type: "action"
+            character: "苏晚晴"
+            description: "从柜台后面抬起头，手里捏着一沓打印纸，递给林晓舟。"
+          # --- 事件 4：对话 ---
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "三月的流水出来了，你看一眼？"
+          # --- 事件 5：动作 ---
+          - type: "action"
+            character: "林晓舟"
+            description: "接过打印纸，目光在数字上快速扫过，眉头不自觉地皱了一下又迅速展开。"
+          # --- 事件 6：旁白 / 心理独白 ---
+          - type: "voiceover"
+            character: "林晓舟"
+            text: "比二月少了百分之十五。不用苏晚晴说我也知道，但听到她说出来，还是像被什么东西刺了一下。"
+          # --- 事件 7：对话 ---
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "比二月少了百分之十五。"
+            emotion: "轻声"
+          # --- 事件 8：对话 ---
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "我知道。"
+            emotion: "低沉"
+          # --- 事件 9：动作 ---
+          - type: "action"
+            character: "林晓舟"
+            description: "把账本放在吧台上，转身去关咖啡机。动作很慢，仿佛在拖延某个必然到来的时刻。机器发出低沉的嗡鸣，然后归于寂静。"
+          # --- 事件 10：舞台指示 ---
+          - type: "stage_direction"
+            description: "林晓舟背对着苏晚晴，看着墙上那面有些褪色的挂钟。时针指向七点。店里只有他们两个人。"
+          # --- 事件 11：对话 ---
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "陈默呢？"
+          # --- 事件 12：对话 ---
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "在后面修他的服务器，说今天必须把点单系统的新模块写完。"
+          # --- 事件 13：动作 + 对话（连续） ---
+          - type: "action"
+            character: "苏晚晴"
+            description: "走到窗边，把'营业中'的牌子翻了个面。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "小林，周阿姨今天又来过了。"
+            emotion: "小心"
+          # --- 事件 14：动作 ---
+          - type: "action"
+            character: "林晓舟"
+            description: "手顿了一下。"
+          # --- 事件 15：对话 ---
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "她说什么？"
+          # --- 事件 16：对话 ---
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "说下个月房租要涨百分之二十，要么一次性付半年，要么……"
+            emotion: "欲言又止"
+          # --- 事件 17：动作（陈默出场） ---
+          - type: "action"
+            character: "陈默"
+            description: "顶着一头乱发掀开门帘钻了出来，穿着洗得发白的格子衬衫，眼镜滑到鼻尖上，手里攥着半块冷掉的披萨。"
+          # --- 事件 18：舞台指示 ---
+          - type: "stage_direction"
+            description: "吧台后面的门帘被掀开，陈默顶着一头乱发钻了出来。他穿着一件洗得发白的格子衬衫，眼镜滑到了鼻尖上，手里还攥着半块冷掉的披萨。"
+          # --- 后续对话事件：关于房租和收购的讨论 ---
+          - type: "dialogue"
+            character: "陈默"
+            line: "你们怎么把灯关了？……怎么了？"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "没事。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "有事。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "说吧，是不是资金链又出问题了？"
+          - type: "action"
+            character: "林晓舟"
+            description: "转过身来，靠在吧台上，双臂交叉在胸前。这是他紧张时的习惯性动作。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "周阿姨要涨房租。而且我们上个月的推广投放几乎没效果，新客增长率不到百分之三。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "那套智能推荐算法呢？我上周不是优化过了吗？"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "算法没问题，是流量问题。平台抽成太高，我们玩不起竞价排名。"
+          - type: "stage_direction"
+            description: "店里陷入短暂的沉默。咖啡机冷却时偶尔发出金属收缩的轻响。苏晚晴走到墙角的绿萝旁。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "我今天接了个电话。是'醇品'连锁的人，他们想谈收购，或者说，合作。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "醇品？就是那个在商场里开了十几家分店，卖速溶咖啡味奶茶的牌子？"
+            emotion: "不屑"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "他们有钱。对方说可以注资，保留我们的品牌，但……要控股。"
+          - type: "action"
+            character: "林晓舟"
+            description: "走到窗边，看着外面街道上匆匆走过的行人。每个人裹在厚重的春装里，低着头，手机屏幕的光映在脸上。"
+          - type: "voiceover"
+            character: "林晓舟"
+            text: "两年前，我们三个人从大学创业园搬到这里。那时候这条街还没有这么多连锁便利店，我们的咖啡机是二手的，苏晚晴亲手刷了墙，陈默用三天三夜写好了第一版小程序。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "如果我们接受，拾光就不再是拾光了。"
+            emotion: "沙哑"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "如果我们不接受，下个月可能就要关门了。"
+            emotion: "轻声"
+          - type: "action"
+            character: "陈默"
+            description: "把眼镜摘下来，用衣角胡乱擦了擦。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "我投了一年的代码在里面，那些用户数据，那些优化方案……给醇品？他们懂什么精品咖啡？"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "但他们懂怎么活下去。"
+          - type: "stage_direction"
+            description: "三个人站在昏暗的店里，各自沉默。窗外的路灯忽然亮了，橘黄色的光透过磨砂玻璃渗进来，在地板上投下模糊的光斑。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "让我再想想。明天，我们明天再决定。"
+            emotion: "疲惫"
+          # FUTURE: 可在此处扩展 "lighting_change" 事件类型，控制灯光渐暗转场
+
+      # --------------------------------------------------
+      # 场景 1-2：第二天清晨 — 拾光咖啡馆
+      # --------------------------------------------------
+      - scene_number: 2
+        location: "拾光咖啡馆内"
+        time: "清晨"
+        characters_present:
+          - "林晓舟"
+          - "苏晚晴"
+        # FUTURE: camera: "广角交代冷清的晨间街道 → 推近到林晓舟的手部特写"
+        events:
+          - type: "stage_direction"
+            description: "第二天清晨。林晓舟比平时早到了一个小时。街道上还弥漫着薄雾，清洁工在不远处清扫落叶，扫帚划过地面的声音沙沙作响。"
+          - type: "action"
+            character: "林晓舟"
+            description: "按下墙上的开关，暖黄色的灯光次第亮起。走到吧台后面开始例行检查：磨豆机的刻度、水温计、鲜奶的保质期。"
+          - type: "voiceover"
+            character: "林晓舟"
+            text: "这些重复了无数次的动作，此刻却显得格外沉重，仿佛每一个动作都在消耗我所剩无几的力气。"
+          - type: "action"
+            character: "苏晚晴"
+            description: "推门进来，今天穿了一件米白色的风衣，手里提着三份早餐。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "陈默呢？"
+          - type: "action"
+            character: "苏晚晴"
+            description: "把豆浆和油条放在吧台上。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "说他直接去展会现场，九点半在科技馆门口汇合。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "你确定要去那个创业展会？我们连展位费都付不起。"
+          - type: "action"
+            character: "苏晚晴"
+            description: "从包里掏出三张工作证。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "我有办法。我大学同学在里面做执行，给我们弄了三个志愿者名额。不用花钱，但得帮忙布置场地。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "你总是有办法。"
+            emotion: "苦笑"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "因为我没你那么多顾虑。小林，有时候想得太多，路就走不动了。"
+            emotion: "直视"
+
+      # --------------------------------------------------
+      # 场景 1-3：科技馆创业展会
+      # --------------------------------------------------
+      - scene_number: 3
+        location: "城市东边科技馆 — 创业展会现场"
+        time: "上午"
+        characters_present:
+          - "林晓舟"
+          - "苏晚晴"
+          - "陈默"
+          - "周阿姨"
+        events:
+          - type: "stage_direction"
+            description: "展会现场混乱嘈杂。到处都是扛着易拉宝和折叠桌的年轻人，空气中弥漫着新打印的铜版纸气味和廉价的香水味。"
+          - type: "action"
+            character: "陈默"
+            description: "已经在入口处等候，背着一个巨大的双肩包，低头看着手机。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "你们可算来了。我刚得到消息，醇品的人今天也来了，就在B12展位。"
+            emotion: "脸色不好"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "他们来干什么？"
+          - type: "dialogue"
+            character: "陈默"
+            line: "据说是来招纳'潜力品牌'的，说得好听，其实就是来挑猎物。"
+            emotion: "冷笑"
+          - type: "stage_direction"
+            description: "三人混在志愿者中帮忙。林晓舟站在一个无人光顾的角落，看着那些光鲜亮丽的创业团队，又低头看看自己袖口的咖啡渍和磨损的皮鞋边缘。"
+          - type: "voiceover"
+            character: "林晓舟"
+            text: "他们穿着熨烫平整的衬衫，拿着精美的宣传册，谈吐间满是'赛道'、'赋能'、'闭环'。而我呢？"
+          - type: "action"
+            character: "周阿姨"
+            description: "从身后走来，穿着一件暗红色的棉袄，手里提着一只布包，头发梳得一丝不苟。"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "小伙子，发什么呆呢？"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "周阿姨？您怎么在这儿？"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "我儿子在这有个展位，卖什么智能家居，我过来看看。你们也参展？"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "帮忙而已。"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "房租的事，考虑得怎么样了？我不是逼你们，那条街要改造，听说下半年要拆，我不涨点，自己也亏。"
+            emotion: "压低声音"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "拆？"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "消息还没公开，但八九不离十。……要不你们一次性付清半年的，我按原来的价格，不涨。"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "年轻人，听我一句劝，做生意不能光靠情怀。那条街的老店，去年关了五家。你们要是能找到下家，趁早脱手。"
+          - type: "action"
+            character: "周阿姨"
+            description: "拍了拍林晓舟的肩膀，转身消失在人群中。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "半年房租，我们上哪儿凑？"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "我有个想法。醇品的人不是来了吗？我们去谈谈。不谈收购，谈合作。让他们把我们的咖啡放进他们的门店，我们做供应链，不交出品牌。"
+            emotion: "眼睛里闪着光"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "他们会同意吗？"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "不同意就拉倒。但至少我们争取过。"
+          - type: "stage_direction"
+            description: "三人朝B12展位走去。展厅里的灯光忽然变暗，主持人宣布开幕式即将开始。"
+          - type: "action"
+            character: "苏晚晴"
+            description: "在昏暗里轻轻握了一下林晓舟的手腕。手很凉，但很有力。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "别怕。"
+            emotion: "坚定"
+          - type: "voiceover"
+            character: "林晓舟"
+            text: "我不知道这句话是对我说的，还是对她自己说的。"
+
+  # ======================================================
+  # 第二幕
+  # ======================================================
+  - act_number: 2
+    # synopsis: "展会结束后回到咖啡馆，三人商议出路，周阿姨深夜来访带来转机。"
+    scenes:
+      # --------------------------------------------------
+      # 场景 2-1：拾光咖啡馆内（夜晚）
+      # --------------------------------------------------
+      - scene_number: 1
+        location: "拾光咖啡馆内"
+        time: "深夜"
+        characters_present:
+          - "林晓舟"
+          - "苏晚晴"
+          - "陈默"
+          - "周阿姨"
+          - "外卖员"
+        events:
+          - type: "stage_direction"
+            description: "展会结束后的夜晚。三人回到拾光咖啡馆。没有开大灯，只点亮了吧台后面的一排射灯。"
+          - type: "action"
+            character: "陈默"
+            description: "瘫坐在旧沙发上，把双肩包扔在脚边，发出沉闷的声响。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "所以，我们拒绝了醇品，拒绝了半年房租，拒绝了一切能让我们活下去的机会。"
+            emotion: "仰头看着天花板"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "我们保留了拾光。而且醇品那个经理最后不是说会考虑我们的方案吗？"
+          - type: "dialogue"
+            character: "陈默"
+            line: "那是客套话。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "我不觉得是。他留了名片，说下周给答复。"
+          - type: "action"
+            character: "林晓舟"
+            description: "正在擦杯子，动作比往常更慢。擦完一个，举起来对着灯光检查，然后放下，再拿起下一个。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "答复就是拒绝。我太累了，林哥，我真的太累了。"
+            emotion: "闷闷的"
+          - type: "action"
+            character: "林晓舟"
+            description: "手停在半空中。"
+          - type: "voiceover"
+            character: "林晓舟"
+            text: "这是陈默第一次叫我'林哥'，而不是'小林'。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "以前你总觉得小林和我们一样，都是刚毕业的学生。但今天你在谈判桌上，一直在看他眼色行事。你潜意识里，已经把他当带头的人了。"
+            emotion: "带着笑意"
+          - type: "dialogue"
+            character: "陈默"
+            line: "那也不能叫林哥啊，听起来像我老家的表哥。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "那叫老林？"
+          - type: "action"
+            character: "陈默"
+            description: "坐起身，抓了抓头发。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "算了，林哥就林哥吧。反正以后要是破产了，林哥你得罩着我。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "破产了谁罩谁还不一定。"
+            emotion: "终于笑了一下"
+          - type: "action"
+            character: "周阿姨"
+            description: "推门进来，身上带着寒气，手里拎着一只保温桶。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "阿姨？"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "我儿子展会上的茶点剩了不少，我带过来给你们尝尝。怎么不开灯？"
+          - type: "dialogue"
+            character: "陈默"
+            line: "省电。"
+            emotion: "脱口而出"
+          - type: "action"
+            character: "周阿姨"
+            description: "瞪了他一眼，自己走过去把大灯打开了。突如其来的光明让三人都眯起了眼睛。"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "我今天来，是想告诉你们，房租的事，我再想想办法。"
+          - type: "action"
+            character: "周阿姨"
+            description: "摆摆手示意林晓舟不必多说。"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "我儿子那个智能家居公司，需要个线下体验点。我想着，你们这店后面不是有个小仓库吗？腾出一半给他放样品，他付租金。这样一来，你们店面的压力就小了。"
+          - type: "stage_direction"
+            description: "三人面面相觑。"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "你们卖咖啡，他卖智能灯泡，不冲突。这条街要拆的消息是真的，但没那么快，至少还有一年。你们要是这一年里做不出起色，那也就认了。但要是做得出来……"
+          - type: "voiceover"
+            character: "林晓舟"
+            text: "我看着周阿姨布满皱纹的脸，忽然觉得喉咙有些发紧。我想说谢谢，但觉得这两个字太轻了。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "阿姨，我们请您喝咖啡吧。新到的耶加雪菲，我手冲给您。"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "那敢情好。不过别弄那些酸不溜秋的花哨玩意儿，给我加双份奶。"
+          - type: "action"
+            character: "苏晚晴"
+            description: "笑出声，跳下高脚凳去帮忙。"
+          - type: "action"
+            character: "陈默"
+            description: "爬起来，把沙发上的靠垫拍整齐。"
+          - type: "stage_direction"
+            description: "林晓舟站在吧台后面，开始称豆、研磨、烧水。热水注入滤杯时，咖啡的香气在空气中弥漫开来。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "其实今天谈判的时候，醇品那个经理问我们，为什么不肯被收购。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "你怎么回答的？"
+          - type: "dialogue"
+            character: "陈默"
+            line: "我说，因为这里有人记得我不爱吃香菜。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "就上次，我们点外卖，你备注了不要香菜。那个经理说，这种小事，系统里存个偏好设置就行。我说不一样。系统记得，是因为代码。你记得，是因为你是苏晚晴。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "我想说……系统不会在我崩溃的时候，给我留半块披萨。"
+            emotion: "声音低下去"
+          - type: "stage_direction"
+            description: "店里安静了几秒钟。只有手冲壶的水流声和窗外偶尔驶过的汽车声。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "那半块披萨是我吃剩的。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "我知道。但你是故意剩的。"
+          # --------------------------------------------------
+          # 高潮：神秘绿萝送达
+          # --------------------------------------------------
+          - type: "stage_direction"
+            description: "从店门外传来一阵细微的响动，像是有人在搬动什么东西。"
+          - type: "action"
+            character: "林晓舟"
+            description: "走到门边，透过玻璃往外看。街道上一个穿着外卖服的年轻人正蹲在店门口。"
+          - type: "dialogue"
+            character: "外卖员"
+            line: "请问，这是拾光咖啡馆吗？"
+            emotion: "腼腆"
+          - type: "dialogue"
+            character: "外卖员"
+            line: "有人让我把这个送来，说放在你们门口。没留名字，就说是……老客人。"
+          - type: "action"
+            character: "林晓舟"
+            description: "蹲下身，看着那盆在夜风里微微颤动的绿萝。叶片上带着水珠，在路灯下闪着细碎的光。把花盆捧起来，转身回到店里。"
+          - type: "action"
+            character: "林晓舟"
+            description: "把花盆翻过来，看见盆底贴着一张便利贴。"
+          - type: "stage_direction"
+            description: "便利贴上一行潦草的字：'明年春天，记得开窗。'"
+          - type: "dialogue"
+            character: "陈默"
+            line: "这是什么意思？"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "意思是，有人相信我们能看到明年春天。"
+            emotion: "轻声"
+          - type: "action"
+            character: "林晓舟"
+            description: "把花盆放在吧台最显眼的位置。转过身，看着这间小小的咖啡馆，看着苏晚晴、陈默，还有端着咖啡杯的周阿姨。"
+          - type: "stage_direction"
+            description: "窗外的城市灯火通明，车流不息。在这个小小的空间里，暖黄的灯光下，五个人的影子被拉得很长，又重叠在一起。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "林哥，明天我想把服务器的散热改一下，后面仓库要是真给周阿姨儿子用，温度会升高。"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "我刚发了条朋友圈，说我们要上新菜单了。已经有十几个人点赞。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "什么新菜单？"
+          - type: "dialogue"
+            character: "苏晚晴"
+            line: "还没想好。但先造势嘛。"
+            emotion: "笑了"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "你们这店，要是真开到明年春天，我给你们免一个月房租。"
+          - type: "dialogue"
+            character: "周阿姨"
+            line: "这植物好，耐活，给点光就长。跟你们似的。"
+          - type: "action"
+            character: "周阿姨"
+            description: "放下杯子，拎起布包，走到门口回头看了一眼那盆绿萝，然后消失在夜色里。"
+          - type: "voiceover"
+            character: "林晓舟"
+            text: "我忽然想起两年前那个夏天，我们刷完墙，坐在空荡荡的店里，苏晚晴说，我们要让这里成为这个城市里最温暖的角落。那时候我觉得她太天真。现在我觉得，天真一点，也没什么不好。"
+          - type: "dialogue"
+            character: "陈默"
+            line: "我关店门了？"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "再等等。"
+          - type: "action"
+            character: "林晓舟"
+            description: "走到窗边，看着外面那条熟悉的街道。路灯下，梧桐树的影子像几根手指，但此刻，那些手指仿佛在轻轻托举着什么。"
+          - type: "dialogue"
+            character: "林晓舟"
+            line: "等春天。"
+            emotion: "平静"
+
+
+# ============================================================
+# 未来可扩展字段建议
+# ============================================================
+#
+# 一、灯光标记 (FUTURE)
+# 可在每个 scene 或 event 中添加 lighting 字段，如：
+#   lighting: "暖黄射灯" | "冷白顶光" | "橘黄色路灯渗透" | "全暗" | "渐亮"
+# 或扩展 event type:
+#   type: "lighting_change"
+#   description: "灯光渐变至暖黄色调"
+#
+# 二、音效 / 背景音乐 (FUTURE)
+# 可在 scene 中添加 ambience 字段，或扩展 event type:
+#   type: "sound_effect"
+#   description: "咖啡机低鸣声 / 扫帚划过地面的沙沙声 / 门铃声"
+#   type: "music"
+#   description: "背景音乐起 — 轻柔的爵士钢琴"
+#   duration: "持续至下一场景切换"
+#
+# 三、镜头建议 (FUTURE)
+# 可在 scene 中添加 camera 字段，如：
+#   camera: "中全景交代环境 → 近景捕捉人物表情 → 特写手部动作"
+# 或扩展 event type:
+#   type: "camera_move"
+#   description: "从林晓舟的侧面缓慢推近至面部特写"
+#
+# 四、转场标记 (FUTURE)
+#    type: "transition"
+#    description: "淡出至黑屏，三秒后淡入至第二天清晨"
+#
+# 五、元数据 (FUTURE)
+# 可在场景或事件中添加：
+#   duration_seconds: 30     # 建议时长
+#   page_break: true         # 分页标记（用于打印剧本）
+#   notes: "此处可调整节奏"  # 编剧备注
+# ============================================================
