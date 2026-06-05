@@ -246,6 +246,62 @@
             font-style: italic;
         }
 
+        /* ── Drop Zone ── */
+
+        .drop-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 0.6rem;
+            background: rgba(15, 14, 12, 0.88);
+            border: 2px dashed var(--accent-gold);
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(6px);
+            transition: all var(--transition-smooth);
+            pointer-events: none;
+        }
+
+        .drop-overlay.active {
+            display: flex;
+            pointer-events: auto;
+        }
+
+        .drop-overlay .drop-icon {
+            font-size: 2rem;
+            opacity: 0.8;
+            animation: drop-pulse 1.4s ease-in-out infinite;
+        }
+
+        .drop-overlay .drop-text {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .drop-overlay .drop-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        @keyframes drop-pulse {
+            0%, 100% { transform: translateY(0); opacity: 0.6; }
+            50% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        .input-area.drag-over textarea {
+            opacity: 0.15;
+        }
+
+        .input-area.drag-over .drop-overlay {
+            display: flex;
+        }
+
         .input-footer {
             display: flex;
             justify-content: space-between;
@@ -662,8 +718,14 @@
                         <button class="btn-sample" id="loadSampleBtn" onclick="loadSample()">加载示例</button>
                     </div>
                 </div>
-                <div class="input-area">
-                    <textarea id="novelInput" placeholder="在此粘贴小说文本…&#10;&#10;支持多章节内容，AI 将按章节自动分幕。" oninput="updateCharCount()">第一章
+                <div class="input-area" id="inputArea">
+                    <!-- Drop Zone Overlay -->
+                    <div class="drop-overlay" id="dropOverlay">
+                        <div class="drop-icon">📂</div>
+                        <div class="drop-text">释放文件以加载</div>
+                        <div class="drop-hint">支持 .txt 文件或文件夹拖放</div>
+                    </div>
+                    <textarea id="novelInput" placeholder="在此粘贴小说文本…&#10;&#10;支持多章节内容，AI 将按章节自动分幕。&#10;&#10;你也可以从本地拖入 .txt 文件或文件夹" oninput="updateCharCount()">第一章
 林晓舟把最后一只玻璃杯倒扣在沥水架上。窗外的天色已经沉了下来。
 
 "小林，别擦了，杯子都要被你擦薄了。"苏晚晴从柜台后面抬起头。
@@ -786,6 +848,137 @@
             document.getElementById('charCount').textContent = len + ' 字符';
             document.getElementById('charCountDisplay').textContent = len + ' 字符';
         }
+
+        // ── Drag & Drop ──
+        const inputArea = document.getElementById('inputArea');
+        const novelInput = document.getElementById('novelInput');
+        let dragCounter = 0;
+
+        inputArea.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter++;
+            if (dragCounter === 1) {
+                inputArea.classList.add('drag-over');
+            }
+        });
+
+        inputArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        inputArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter--;
+            if (dragCounter === 0) {
+                inputArea.classList.remove('drag-over');
+            }
+        });
+
+        inputArea.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter = 0;
+            inputArea.classList.remove('drag-over');
+
+            const items = e.dataTransfer.items;
+            if (!items || items.length === 0) {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    await loadFile(files[0]);
+                }
+                return;
+            }
+
+            // Try reading as folder entry first
+            const entry = items[0].webkitGetAsEntry ? items[0].webkitGetAsEntry() : null;
+            if (entry && entry.isDirectory) {
+                await loadFolder(entry);
+            } else if (entry && entry.isFile) {
+                entry.file((file) => loadFile(file));
+            } else {
+                // Fallback: use files list
+                const file = items[0].getAsFile();
+                if (file) await loadFile(file);
+            }
+        });
+
+        async function loadFile(file) {
+            // Check if it's a text file
+            const validExts = ['.txt', '.md', '.yaml', '.yml', '.json', '.csv'];
+            const name = file.name.toLowerCase();
+            const isText = validExts.some(ext => name.endsWith(ext)) || file.type.startsWith('text/');
+
+            if (!isText) {
+                showToast('⚠️ 仅支持文本文件（.txt / .md 等）');
+                return;
+            }
+
+            try {
+                const text = await file.text();
+                novelInput.value = text;
+                updateCharCount();
+                hideError();
+                showToast('✅ 已加载: ' + file.name);
+            } catch {
+                showToast('❌ 文件读取失败');
+            }
+        }
+
+        async function loadFolder(entry) {
+            const reader = entry.createReader();
+            const txtFiles = [];
+
+            const readEntries = () => {
+                return new Promise((resolve) => {
+                    reader.readEntries(async (entries) => {
+                        for (const ent of entries) {
+                            if (ent.isFile && ent.name.match(/\.(txt|md)$/i)) {
+                                const file = await new Promise((r) => ent.file(r));
+                                txtFiles.push(file);
+                            }
+                        }
+                        resolve();
+                    });
+                });
+            };
+
+            await readEntries();
+
+            if (txtFiles.length === 0) {
+                showToast('⚠️ 文件夹中未找到 .txt 或 .md 文件');
+                return;
+            }
+
+            // Sort by name and concatenate
+            txtFiles.sort((a, b) => a.name.localeCompare(b.name));
+            const parts = await Promise.all(
+                txtFiles.map((f) => f.text().then((t) => `/* ${f.name} */\n${t}`))
+            );
+            novelInput.value = parts.join('\n\n');
+            updateCharCount();
+            hideError();
+            showToast(`✅ 已加载 ${txtFiles.length} 个文件`);
+        }
+
+        // Also support paste from clipboard
+        document.addEventListener('paste', (e) => {
+            // Only handle if textarea is empty or focused
+            if (document.activeElement !== novelInput) return;
+
+            const items = e.clipboardData.items;
+            for (const item of items) {
+                if (item.type.startsWith('text/')) {
+                    // Text paste — let the browser handle it natively
+                    return;
+                }
+                if (item.type === 'text/plain' && item.kind === 'string') {
+                    return;
+                }
+            }
+        });
 
         // ── Load Sample ──
         async function loadSample() {
