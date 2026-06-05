@@ -18,7 +18,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
-from app.services.converter import convert_novel_to_screenplay, PROVIDERS
+from app.services.converter import convert_novel_to_screenplay, PROVIDERS, PRESETS
 from app.services.file_parser import extract_text_from_docx_bytes
 
 logger = logging.getLogger(__name__)
@@ -36,6 +36,7 @@ class ConvertRequest(BaseModel):
     provider: str | None = Field(None, description="模型提供商，不传则用服务器默认配置")
     api_key: str | None = Field(None, description="用户自己的 API Key")
     model: str | None = Field(None, description="模型名称，不传则用对应提供商的默认模型")
+    preset: str | None = Field(None, description="剧本风格预设：film / tv / stage / short_video")
 
 
 class ConvertResponse(BaseModel):
@@ -82,6 +83,7 @@ async def convert(req: ConvertRequest):
             provider=req.provider,
             api_key=req.api_key,
             model=req.model,
+            preset=req.preset,
         )
 
         data = screenplay.model_dump(mode="json")
@@ -136,6 +138,21 @@ async def get_providers():
                 "default_model": info["default_model"],
             }
             for key, info in PROVIDERS.items()
+        },
+    }
+
+
+@router.get("/presets")
+async def get_presets():
+    """返回支持的剧本风格预设列表。"""
+    return {
+        "success": True,
+        "presets": {
+            key: {
+                "name": info["name"],
+                "description": info["description"],
+            }
+            for key, info in PRESETS.items()
         },
     }
 
