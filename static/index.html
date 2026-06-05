@@ -646,6 +646,183 @@
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+        /* ═══════════════════════════════════════════════
+           Settings Modal
+           ═══════════════════════════════════════════════ */
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-strong);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+            transition: color var(--transition-smooth);
+        }
+
+        .modal-close:hover { color: var(--text-primary); }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-body .field {
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-body .field:last-child { margin-bottom: 0; }
+
+        .modal-body label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.35rem;
+            letter-spacing: 0.03em;
+        }
+
+        .modal-body select,
+        .modal-body input[type="text"],
+        .modal-body input[type="password"] {
+            width: 100%;
+            padding: 0.6rem 0.85rem;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            outline: none;
+            transition: border-color var(--transition-smooth);
+        }
+
+        .modal-body select:focus,
+        .modal-body input:focus {
+            border-color: var(--accent-amber);
+        }
+
+        .modal-body select option {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+        }
+
+        .modal-body .field-hint {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            font-style: italic;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .modal-footer .btn-modal {
+            padding: 0.5rem 1.2rem;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-smooth);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-footer .btn-modal.secondary {
+            color: var(--text-secondary);
+            background: transparent;
+        }
+
+        .modal-footer .btn-modal.secondary:hover {
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+        }
+
+        .modal-footer .btn-modal.primary {
+            color: #1a1815;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-amber));
+            border-color: transparent;
+            font-weight: 600;
+        }
+
+        .modal-footer .btn-modal.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(212, 165, 116, 0.3);
+        }
+
+        .settings-trigger {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.15rem 0.3rem;
+            transition: color var(--transition-smooth), transform var(--transition-smooth);
+        }
+
+        .settings-trigger:hover {
+            color: var(--accent-gold);
+            transform: rotate(30deg);
+        }
+
+        .api-badge {
+            font-size: 0.65rem;
+            padding: 0.12rem 0.4rem;
+            border-radius: 4px;
+            background: var(--bg-surface);
+            color: var(--text-muted);
+            margin-left: 0.3rem;
+            font-family: var(--font-mono);
+        }
+
+        .api-badge.active {
+            background: rgba(90, 170, 90, 0.15);
+            color: #5a9;
+        }
+
         /* ── Toast Notification ── */
 
         .toast {
@@ -704,6 +881,10 @@
                 <span><span class="status-dot online" id="statusDot"></span><span id="statusText">已就绪</span></span>
                 <span>API <span class="status-key" id="apiStatus">未配置</span></span>
                 <span id="charCountDisplay">0 字符</span>
+                <span style="margin-left:auto;">
+                    <button class="settings-trigger" id="settingsBtn" onclick="toggleSettings()" title="API 设置">⚙</button>
+                    <span class="api-badge" id="apiBadge">默认</span>
+                </span>
             </div>
         </header>
 
@@ -802,6 +983,39 @@
 
     </div>
 
+    <!-- ═══ SETTINGS MODAL ═══ -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>⚙ API 设置</h2>
+                <button class="modal-close" onclick="toggleSettings()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="field">
+                    <label for="providerSelect">模型提供商</label>
+                    <select id="providerSelect" onchange="onProviderChange()">
+                        <option value="">使用服务器默认 (DeepSeek)</option>
+                    </select>
+                    <div class="field-hint">选择 AI 模型提供商，不选则使用服务器已配置的 DeepSeek</div>
+                </div>
+                <div class="field">
+                    <label for="apiKeyInput">API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
+                    <div class="field-hint">你的私人 API Key，仅保存在本地浏览器中，不会上传到服务器</div>
+                </div>
+                <div class="field">
+                    <label for="modelInput">模型名称（可选）</label>
+                    <input type="text" id="modelInput" placeholder="不填则使用默认模型">
+                    <div class="field-hint" id="modelHint">留空则使用提供商默认模型</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal secondary" onclick="clearSettings()">清除设置</button>
+                <button class="btn-modal primary" onclick="saveSettings()">✓ 保存</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ═══ TOAST ═══ -->
     <div class="toast" id="toast"></div>
 
@@ -817,6 +1031,8 @@
             updateCharCount();
             await loadSchema();
             await checkHealth();
+            await loadProviders();
+            loadSavedSettings();
         });
 
         // ── Health Check ──
@@ -1033,11 +1249,21 @@
             hideError();
             hideOutput();
 
+            // 读取用户 API 设置
+            const settings = getUserApiSettings();
+            const body = {
+                novel_text: input,
+                temperature: 0.3,
+                ...(settings.provider && { provider: settings.provider }),
+                ...(settings.apiKey && { api_key: settings.apiKey }),
+                ...(settings.model && { model: settings.model }),
+            };
+
             try {
                 const res = await fetch('/api/convert', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ novel_text: input, temperature: 0.3 }),
+                    body: JSON.stringify(body),
                 });
 
                 const result = await res.json();
@@ -1203,6 +1429,123 @@
             clearTimeout(el._timeout);
             el._timeout = setTimeout(() => el.classList.remove('show'), 2500);
         }
+
+        // ═══════════════════════════════════════════════
+        //  Settings: User API Key / Provider
+        // ═══════════════════════════════════════════════
+
+        // ── Load providers list from server ──
+        async function loadProviders() {
+            try {
+                const res = await fetch('/api/providers');
+                const data = await res.json();
+                if (!data.success) return;
+
+                const sel = document.getElementById('providerSelect');
+                for (const [key, info] of Object.entries(data.providers)) {
+                    const opt = document.createElement('option');
+                    opt.value = key;
+                    opt.textContent = info.name + ' (' + info.default_model + ')';
+                    opt.dataset.defaultModel = info.default_model;
+                    sel.appendChild(opt);
+                }
+            } catch {}
+        }
+
+        // ── Get user's saved API settings ──
+        function getUserApiSettings() {
+            try {
+                const raw = localStorage.getItem('novel2script_api');
+                return raw ? JSON.parse(raw) : {};
+            } catch {
+                return {};
+            }
+        }
+
+        // ── Load saved settings into form ──
+        function loadSavedSettings() {
+            const s = getUserApiSettings();
+            if (s.provider) {
+                document.getElementById('providerSelect').value = s.provider;
+                updateApiBadge(s.provider);
+            }
+            if (s.apiKey) {
+                document.getElementById('apiKeyInput').value = s.apiKey;
+            }
+            if (s.model) {
+                document.getElementById('modelInput').value = s.model;
+            }
+        }
+
+        // ── Toggle settings modal ──
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('active');
+        }
+
+        // ── Provider changed ──
+        function onProviderChange() {
+            const sel = document.getElementById('providerSelect');
+            const hint = document.getElementById('modelHint');
+            const selected = sel.options[sel.selectedIndex];
+            if (sel.value && selected.dataset.defaultModel) {
+                hint.textContent = '默认: ' + selected.dataset.defaultModel;
+            } else {
+                hint.textContent = '留空则使用提供商默认模型';
+            }
+        }
+
+        // ── Save settings to localStorage ──
+        function saveSettings() {
+            const provider = document.getElementById('providerSelect').value;
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const model = document.getElementById('modelInput').value.trim();
+
+            const settings = {};
+            if (provider) settings.provider = provider;
+            if (apiKey) settings.apiKey = apiKey;
+            if (model) settings.model = model;
+
+            localStorage.setItem('novel2script_api', JSON.stringify(settings));
+            updateApiBadge(provider);
+            toggleSettings();
+            showToast('✅ API 设置已保存（仅本地）');
+        }
+
+        // ── Clear saved settings ──
+        function clearSettings() {
+            localStorage.removeItem('novel2script_api');
+            document.getElementById('providerSelect').value = '';
+            document.getElementById('apiKeyInput').value = '';
+            document.getElementById('modelInput').value = '';
+            document.getElementById('modelHint').textContent = '留空则使用提供商默认模型';
+            updateApiBadge('');
+            showToast('已清除 API 设置，将使用服务器默认配置');
+        }
+
+        // ── Update the API badge in the status bar ──
+        function updateApiBadge(provider) {
+            const badge = document.getElementById('apiBadge');
+            if (provider) {
+                badge.textContent = provider;
+                badge.className = 'api-badge active';
+            } else {
+                badge.textContent = '默认';
+                badge.className = 'api-badge';
+            }
+        }
+
+        // ── Close settings modal on overlay click ──
+        document.getElementById('settingsModal').addEventListener('click', function(e) {
+            if (e.target === this) toggleSettings();
+        });
+
+        // ── Keyboard shortcut: Escape closes modal ──
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('settingsModal').classList.contains('active')) {
+                toggleSettings();
+            }
+        });
     </script>
 
 </body>
