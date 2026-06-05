@@ -517,6 +517,177 @@
         .yaml-script .b { color: var(--amber-deep); }
         .yaml-script .c { color: var(--text-dim); font-style: italic; }
 
+        /* ── Output Tabs ── */
+        .output-tabs {
+            display: flex;
+            gap: 0;
+            margin-left: auto;
+            background: var(--bg-surface);
+            border-radius: var(--radius-sm);
+            padding: 2px;
+            overflow: hidden;
+        }
+
+        .output-tabs .otab {
+            padding: 0.2rem 0.6rem;
+            font-size: 0.65rem;
+            font-family: var(--font-body);
+            color: var(--text-dim);
+            background: transparent;
+            border: none;
+            border-radius: calc(var(--radius-sm) - 2px);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        .output-tabs .otab:hover { color: var(--text-warm); }
+
+        .output-tabs .otab.active {
+            color: var(--text-cream);
+            background: var(--bg-elevated);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        /* ── Preview Panel ── */
+        .preview-panel {
+            display: none;
+            padding: 1.1rem 1.25rem;
+            overflow-y: auto;
+            height: 100%;
+            min-height: 350px;
+        }
+
+        .preview-panel.on { display: block; }
+
+        .preview-act {
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-act-divider {
+            text-align: center;
+            padding: 0.75rem 0 0.5rem;
+            position: relative;
+            color: var(--text-muted);
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            font-style: italic;
+        }
+
+        .preview-act-divider::before,
+        .preview-act-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 30%;
+            height: 1px;
+            background: var(--border-card);
+        }
+
+        .preview-act-divider::before { left: 0; }
+        .preview-act-divider::after { right: 0; }
+
+        .preview-scene {
+            margin-bottom: 1.25rem;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.015);
+            border-left: 2px solid var(--border-accent);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+
+        .preview-scene-header {
+            font-family: var(--font-display);
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--amber);
+            margin-bottom: 0.6rem;
+            letter-spacing: 0.02em;
+        }
+
+        .preview-scene-header .scene-meta {
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+        }
+
+        .preview-event {
+            margin-bottom: 0.5rem;
+            line-height: 1.65;
+            padding-left: 0.3rem;
+        }
+
+        .preview-event:last-child { margin-bottom: 0; }
+
+        .preview-event.stage_direction {
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .preview-event.action {
+            color: var(--text-warm);
+            font-size: 0.82rem;
+        }
+
+        .preview-event.action .action-char {
+            font-weight: 600;
+            color: var(--text-cream);
+        }
+
+        .preview-event.dialogue {
+            margin-top: 0.4rem;
+        }
+
+        .preview-event.dialogue .d-char {
+            font-weight: 700;
+            color: var(--text-cream);
+            font-size: 0.82rem;
+        }
+
+        .preview-event.dialogue .d-emotion {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            font-weight: 400;
+            font-style: italic;
+            margin-left: 0.25rem;
+        }
+
+        .preview-event.dialogue .d-line {
+            display: block;
+            padding-left: 1.5rem;
+            color: var(--text-warm);
+            font-size: 0.85rem;
+            margin-top: 0.05rem;
+        }
+
+        .preview-event.voiceover {
+            font-style: italic;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            border-left: 2px solid var(--border-card);
+            padding-left: 0.7rem;
+        }
+
+        .preview-event.voiceover .vo-char {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .preview-event.voiceover .vo-label {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+        }
+
+        .preview-empty {
+            color: var(--text-dim);
+            text-align: center;
+            padding: 3rem 1rem;
+            font-style: italic;
+        }
+
         .output-err {
             display: none;
             padding: 0.65rem 1rem;
@@ -547,10 +718,79 @@
         }
 
         /* ── Convert Button ── */
+        /* ── Preset Selector ── */
+        .preset-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0 1.25rem;
+            padding: 0.6rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            overflow-x: auto;
+        }
+
+        .preset-bar .preset-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            white-space: nowrap;
+            letter-spacing: 0.03em;
+            margin-right: 0.25rem;
+        }
+
+        .preset-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.85rem;
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            background: transparent;
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .preset-pill:hover {
+            color: var(--text-warm);
+            border-color: var(--border-accent);
+            background: rgba(212, 163, 115, 0.04);
+        }
+
+        .preset-pill.active {
+            color: var(--bg-deep);
+            background: var(--amber-gradient);
+            border-color: var(--amber);
+            font-weight: 600;
+        }
+
+        .preset-pill .pill-icon { font-size: 0.75rem; }
+
+        .preset-pill .pill-desc {
+            display: none;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+
+        .preset-pill.active .pill-desc { display: none; }
+
+        @media (min-width: 860px) {
+            .preset-pill .pill-desc {
+                display: inline;
+            }
+            .preset-pill.active .pill-desc { display: none; }
+        }
+
         .convert-row {
             display: flex;
             justify-content: center;
-            margin-top: 1.25rem;
+            margin-top: 0.75rem;
             position: relative;
         }
 
@@ -909,6 +1149,46 @@
 
         .toast.show { opacity: 1; transform: translateY(0); }
 
+        /* ── Back to Top ── */
+        .back-top {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            left: auto;
+            z-index: 150;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-card);
+            border-radius: 50%;
+            color: var(--text-dim);
+            font-size: 1rem;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all var(--transition);
+            pointer-events: none;
+            box-shadow: var(--shadow-card);
+        }
+
+        .back-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .back-top:hover {
+            background: var(--bg-hover);
+            color: var(--text-warm);
+            border-color: var(--border-accent);
+            transform: translateY(-2px);
+        }
+
+        .back-top.visible:hover { transform: translateY(-2px); }
+
         /* ════════════════════════════════════════════════════════════
            Responsive
            ════════════════════════════════════════════════════════════ */
@@ -1006,11 +1286,17 @@
                 <!-- Output Folio -->
                 <div class="folio">
                     <div class="folio-header">
-                        <span><span class="icon">🎬</span> 剧本输出 (YAML)</span>
-                        <span id="outActions" style="display:none;display:inline-flex;gap:0.2rem;">
-                            <button class="btn btn-ghost btn-xs" onclick="copyYaml()">📋 复制</button>
-                            <button class="btn btn-ghost btn-xs" onclick="dlYaml()">⬇ 下载</button>
-                        </span>
+                        <span><span class="icon">🎬</span> 剧本输出</span>
+                        <div style="display:flex;align-items:center;gap:0.4rem;">
+                            <span class="output-tabs" id="outputTabs" style="display:none;">
+                                <button class="otab active" data-otab="yaml" onclick="switchOutTab('yaml')">YAML</button>
+                                <button class="otab" data-otab="preview" onclick="switchOutTab('preview')">剧本预览</button>
+                            </span>
+                            <span id="outActions" style="display:none;display:inline-flex;gap:0.2rem;">
+                                <button class="btn btn-ghost btn-xs" onclick="copyYaml()">📋 复制</button>
+                                <button class="btn btn-ghost btn-xs" onclick="dlYaml()">⬇ 下载</button>
+                            </span>
+                        </div>
                     </div>
                     <div class="output-stage" id="outputStage">
                         <div class="output-mask" id="outputMask">
@@ -1018,6 +1304,7 @@
                             <p>点击「开始转换」生成剧本</p>
                         </div>
                         <pre class="yaml-script" id="yamlBlock"></pre>
+                        <div class="preview-panel" id="previewPanel"></div>
                         <div class="loading-reel" id="loadingReel">
                             <div class="reel"></div>
                             <span class="reel-txt">AI 正在分析小说结构…</span>
@@ -1033,6 +1320,15 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Preset Selector -->
+            <div class="preset-bar" id="presetBar">
+                <span class="preset-label">🎭 风格</span>
+                <button class="preset-pill active" data-preset="" onclick="selectPreset(this)">
+                    <span class="pill-icon">📄</span> 标准
+                    <span class="pill-desc">默认格式</span>
+                </button>
             </div>
 
             <!-- Convert Button -->
@@ -1137,6 +1433,9 @@
 
     </div>
 
+    <!-- ═══ Back to Top ═══ -->
+    <button class="back-top" id="backTop" onclick="scrollToTop()" title="回到顶部">↑</button>
+
     <!-- ═══ Toast ═══ -->
     <div class="toast" id="toast"></div>
 
@@ -1153,6 +1452,7 @@
             await loadSchema();
             await health();
             await loadProvs();
+            await loadPresets();
             loadSet();
             updatePill();
         });
@@ -1275,20 +1575,30 @@
             if (s.provider) b.provider = s.provider;
             if (s.apiKey) b.api_key = s.apiKey;
             if (s.model) b.model = s.model;
+            const ap = document.querySelector('.preset-pill.active');
+            if (ap && ap.dataset.preset) b.preset = ap.dataset.preset;
 
             try {
                 const r = await fetch('/api/convert', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) });
                 const d = await r.json();
-                if (d.success) { showRes(d.yaml_text, d.stats, d.api_source); Y = d.yaml_text; }
+                if (d.success) { showRes(d.yaml_text, d.stats, d.api_source, d.data); Y = d.yaml_text; }
                 else showErr(d.error || '转换失败');
             } catch(e) { showErr('网络错误: ' + e.message); }
             finally { setLoad(false); }
         }
 
-        function showRes(y, st, src) {
-            const el = document.getElementById('yamlBlock');
-            el.innerHTML = hl(y); el.style.display = 'block';
+        function showRes(y, st, src, data) {
+            // YAML view
+            document.getElementById('yamlBlock').innerHTML = hl(y);
+            document.getElementById('yamlBlock').style.display = 'block';
             document.getElementById('outputMask').style.display = 'none';
+
+            // Preview view
+            if (data) {
+                document.getElementById('previewPanel').innerHTML = renderPreview(data);
+            }
+
+            // Stats
             if (st) {
                 document.getElementById('sChars').textContent = st.characters;
                 document.getElementById('sActs').textContent = st.acts;
@@ -1296,8 +1606,14 @@
                 document.getElementById('sEvents').textContent = st.events;
                 document.getElementById('sSource').textContent = src || '默认';
             }
+
+            // Show result bar and tabs
             document.getElementById('resultBar').style.display = 'flex';
             document.getElementById('resultMeta').textContent = `✦ ${st?st.characters:'—'} 人 · ${st?st.acts:'—'} 幕 · ${st?st.events:'—'} 场`;
+            document.getElementById('outputTabs').style.display = 'inline-flex';
+
+            // Default to YAML tab
+            switchOutTab('yaml');
             toast('✅ 转换成功');
         }
 
@@ -1318,6 +1634,110 @@
         }
 
         function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        // ═══ Output Tab Switching ═══
+        function switchOutTab(tab) {
+            document.querySelectorAll('.otab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.otab[data-otab="${tab}"]`).classList.add('active');
+
+            const yamlEl = document.getElementById('yamlBlock');
+            const previewEl = document.getElementById('previewPanel');
+
+            if (tab === 'yaml') {
+                yamlEl.style.display = 'block';
+                previewEl.style.display = 'none';
+                document.getElementById('outActions').style.display = 'inline-flex';
+            } else {
+                yamlEl.style.display = 'none';
+                previewEl.style.display = 'block';
+                previewEl.classList.add('on');
+                document.getElementById('outActions').style.display = 'none';
+            }
+        }
+
+        // ═══ Render Preview ═══
+        function renderPreview(data) {
+            if (!data || !data.acts || !data.acts.length) {
+                return '<div class="preview-empty">暂无剧本数据</div>';
+            }
+
+            const chars = data.characters || [];
+            let html = '';
+
+            // Character reference
+            if (chars.length) {
+                html += '<div style="margin-bottom:1rem;padding:0.5rem 0.75rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-sm);font-size:0.72rem;color:var(--text-muted);">';
+                html += '<span style="font-weight:600;color:var(--text-warm);">出场角色</span>：';
+                html += chars.map(c => `<span style="margin:0 0.3rem;">${c.name}</span>`).join('·');
+                html += '</div>';
+            }
+
+            // Acts
+            for (const act of data.acts) {
+                html += `<div class="preview-act">`;
+                html += `<div class="preview-act-divider">— 第 ${act.act_number} 幕 —</div>`;
+
+                for (const scene of act.scenes) {
+                    html += `<div class="preview-scene">`;
+                    html += `<div class="preview-scene-header">`;
+                    html += `【场景 ${scene.scene_number}】${esc(scene.location)}`;
+                    html += ` <span class="scene-meta">· ${esc(scene.time)}</span>`;
+                    html += `</div>`;
+
+                    if (scene.characters_present && scene.characters_present.length) {
+                        html += `<div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.5rem;">出场：${scene.characters_present.join('、')}</div>`;
+                    }
+
+                    for (const evt of scene.events) {
+                        html += renderEvent(evt);
+                    }
+
+                    html += `</div>`; // .preview-scene
+                }
+
+                html += `</div>`; // .preview-act
+            }
+
+            return html;
+        }
+
+        function renderEvent(evt) {
+            const t = evt.type || '';
+            const c = evt.character || '';
+            const l = evt.line || '';
+            const d = evt.description || '';
+            const e = evt.emotion || '';
+            const txt = evt.text || '';
+
+            switch (t) {
+                case 'stage_direction':
+                    return `<div class="preview-event stage_direction">${esc(d)}</div>`;
+
+                case 'action':
+                    return `<div class="preview-event action"><span class="action-char">${esc(c)}</span> ${esc(d)}</div>`;
+
+                case 'dialogue': {
+                    let dt = `<div class="preview-event dialogue">`;
+                    dt += `<span class="d-char">${esc(c)}</span>`;
+                    if (e) dt += `<span class="d-emotion">（${esc(e)}）</span>`;
+                    dt += `<span class="d-line">${esc(l)}</span>`;
+                    dt += `</div>`;
+                    return dt;
+                }
+
+                case 'voiceover': {
+                    let v = `<div class="preview-event voiceover">`;
+                    v += `<span class="vo-label">${esc(c || '旁白')}</span>`;
+                    v += ` <span class="vo-char">(V.O.)</span>`;
+                    v += `<br>${esc(txt)}`;
+                    v += `</div>`;
+                    return v;
+                }
+
+                default:
+                    return `<div class="preview-event">${esc(JSON.stringify(evt))}</div>`;
+            }
+        }
 
         // ═══ Copy / Download ═══
         async function copyYaml() {
@@ -1344,14 +1764,41 @@
         function hideErr() { document.getElementById('outputErr').style.display = 'none'; }
         function hideOut() {
             document.getElementById('yamlBlock').style.display = 'none';
+            document.getElementById('previewPanel').style.display = 'none';
+            document.getElementById('previewPanel').innerHTML = '';
             document.getElementById('outputMask').style.display = 'flex';
             document.getElementById('resultBar').style.display = 'none';
+            document.getElementById('outputTabs').style.display = 'none';
             ['sChars','sActs','sScenes','sEvents'].forEach(id => document.getElementById(id).textContent = '—');
         }
         function toast(m) {
             const t = document.getElementById('toast');
             t.textContent = m; t.classList.add('show');
             clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ═══ Presets ═══
+        async function loadPresets() {
+            try {
+                const r = await fetch('/api/presets');
+                const d = await r.json();
+                if (!d.success) return;
+                const bar = document.getElementById('presetBar');
+                const icons = { film: '🎬', tv: '📺', stage: '🎭', short_video: '📱' };
+                for (const [k, v] of Object.entries(d.presets)) {
+                    const btn = document.createElement('button');
+                    btn.className = 'preset-pill';
+                    btn.dataset.preset = k;
+                    btn.onclick = function() { selectPreset(this); };
+                    btn.innerHTML = `<span class="pill-icon">${icons[k]||'📄'}</span> ${v.name} <span class="pill-desc">· ${v.description}</span>`;
+                    bar.appendChild(btn);
+                }
+            } catch {}
+        }
+
+        function selectPreset(el) {
+            document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
         }
 
         // ═══ Settings ═══
@@ -1411,6 +1858,16 @@
             else if (s.provider && !s.apiKey) { lbl.textContent = s.provider + '(无Key)'; dot.className = 'dot off'; }
             else { lbl.textContent = '服务器默认'; dot.className = 'dot'; }
             document.getElementById('setApiSource').textContent = (s.provider && s.apiKey) ? s.provider : '服务器默认 (DeepSeek)';
+        }
+
+        // ═══ Back to Top ═══
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('backTop');
+            btn.classList.toggle('visible', window.scrollY > 400);
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // ═══ Keyboard ═══

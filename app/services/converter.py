@@ -50,6 +50,93 @@ PROVIDERS = {
 }
 
 
+# ── 剧本风格预设 ───────────────────────────────────────
+# 每种风格使用不同的系统提示词，引导 AI 输出不同侧重点的剧本
+PRESETS = {
+    "film": {
+        "name": "电影剧本",
+        "description": "经典电影剧本格式，场景驱动，适合改编为电影",
+        "prompt_extra": """
+## 风格要求：电影剧本
+
+请以经典电影剧本的节奏感来组织内容：
+
+1. **场景切换**：每个场景应像电影镜头一样有明确的视觉起点和终点
+2. **对话精炼**：台词应简洁有力，符合电影对白的节奏
+3. **动作描写**：用现在时态描写角色动作，像摄影机记录
+4. **情感张力**：标注角色的微表情和潜台词，帮助演员理解
+5. **节奏控制**：紧张场景用短句，抒情场景用细腻描写
+6. **转场提示**：相邻场景之间如果有时空跳跃，在 stage_direction 中体现
+
+每幕对应电影的一「幕」（Act），建议 3 幕结构：
+- 第一幕：建立人物和冲突
+- 第二幕：矛盾升级
+- 第三幕：高潮与解决
+""",
+    },
+    "tv": {
+        "name": "电视剧本",
+        "description": "多集/多幕结构，适合改编为电视剧或网剧",
+        "prompt_extra": """
+## 风格要求：电视剧本
+
+请以电视剧的叙事节奏来组织内容：
+
+1. **多线叙事**：识别小说中的多条故事线，在场景中标注视角
+2. **钩子设计**：每幕结尾可以设计悬念钩子（cliffhanger）
+3. **节奏明快**：电视剧场景通常较短，建议每章拆分为 3-5 个短场景
+4. **对话密度**：电视剧对话量通常大于电影，保留更多精彩对白
+5. **角色弧光**：关注角色成长轨迹，在 voiceover 中体现内心变化
+
+每章对应一「集」（Episode），每集内部再分幕：
+- 每集 4-6 个场景，确保节奏紧凑
+- 场景切换可加入时间标题（如「同日稍后」「次日清晨」）
+""",
+    },
+    "stage": {
+        "name": "舞台剧",
+        "description": "舞台表演格式，重对话和舞台指示，适合话剧改编",
+        "prompt_extra": """
+## 风格要求：舞台剧本
+
+请以舞台剧的表现形式来组织内容：
+
+1. **场景集中**：舞台场景变化有限，合并相近地点的事件
+2. **舞台指示详细**：每个 stage_direction 应包含灯光、音效、道具提示
+3. **对话为主**：舞台剧依赖对白推动，保留所有重要对话
+4. **出入场标记**：在 action 中明确标注角色的上场和下场
+5. **独白保留**：重要的心理描写可以转化为角色独白（voiceover + character）
+6. **幕间暗示**：如果场景间有暗场转换，在 stage_direction 中标注
+
+每幕对应舞台剧的一「幕」：
+- 通常 2-3 幕，每幕 2-4 个场景
+- 场景间可用「灯光渐暗」「音效过渡」等连接
+""",
+    },
+    "short_video": {
+        "name": "短视频脚本",
+        "description": "精简快节奏，带时间标注和镜头提示，适合抖音/快手/B站",
+        "prompt_extra": """
+## 风格要求：短视频脚本
+
+请以短视频的节奏和格式来组织内容：
+
+1. **极度精简**：每个场景不超过 60 秒阅读时长，快速切入重点
+2. **开头钩子**：第一个 stage_direction 应设计为抓人眼球的开场画面
+3. **节奏紧凑**：对话短促有力，去除所有修饰性废话
+4. **画面感**：在 stage_direction 中加入视觉描述（构图、色调、镜头运动）
+5. **时间标注**：在 time 字段中使用「0:00 - 0:15」这样的时间码格式
+6. **重点突出**：核心台词或反转点用 emotion 标注
+
+每「幕」对应一个短视频（15-60 秒）：
+- 每个场景严格控制 3-5 个事件
+- 开场即高潮，不要铺垫
+- voiceover 可用作出镜旁白
+""",
+    },
+}
+
+
 # ── 系统提示词 ─────────────────────────────────────────
 SYSTEM_PROMPT = """你是一个专业的剧本改编助手。你的任务是将小说文本转换为结构化的 YAML 剧本格式。
 
@@ -154,6 +241,7 @@ def convert_novel_to_screenplay(
     provider: Optional[str] = None,
     api_key: Optional[str] = None,
     model: Optional[str] = None,
+    preset: Optional[str] = None,
 ) -> Screenplay:
     """
     将小说文本转换为结构化剧本。
@@ -162,6 +250,9 @@ def convert_novel_to_screenplay(
     - 用户传入 api_key + provider → 使用用户自己的 API Key 和模型
     - 不传则 fallback 到服务器配置（DeepSeek）
 
+    支持多风格预设：
+    - film / tv / stage / short_video
+
     Args:
         novel_text: 小说文本内容
         temperature: 生成温度 (0-1)
@@ -169,6 +260,7 @@ def convert_novel_to_screenplay(
         provider: 模型提供商（deepseek / kimi / glm / tongyi / doubao）
         api_key: 用户自己的 API Key
         model: 模型名称（不传则用对应 provider 的默认模型）
+        preset: 剧本风格（film / tv / stage / short_video）
 
     Returns:
         Screenplay: 校验通过的剧本数据模型
@@ -195,7 +287,16 @@ def convert_novel_to_screenplay(
             "或在页面设置中填入你自己的 API Key。"
         )
 
-    logger.info("使用 %s | model=%s", source, effective_model)
+    # ── 确定风格预设 ──
+    if preset and preset in PRESETS:
+        preset_info = PRESETS[preset]
+        effective_prompt = SYSTEM_PROMPT + "\n" + preset_info["prompt_extra"]
+        preset_name = preset_info["name"]
+    else:
+        effective_prompt = SYSTEM_PROMPT
+        preset_name = "标准"
+
+    logger.info("使用 %s | model=%s | preset=%s", source, effective_model, preset_name)
 
     # ── 创建客户端 ──
     client = OpenAI(
@@ -207,7 +308,7 @@ def convert_novel_to_screenplay(
     response = client.chat.completions.create(
         model=effective_model,
         messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": effective_prompt},
             {"role": "user", "content": _build_user_prompt(novel_text)},
         ],
         temperature=temperature,
@@ -242,10 +343,11 @@ def convert_novel_to_screenplay(
         raise ValueError(f"数据校验失败: {e}")
 
     logger.info(
-        "转换成功: title=%s, characters=%d, acts=%d | source=%s",
+        "转换成功: title=%s, characters=%d, acts=%d | source=%s | preset=%s",
         screenplay.title,
         len(screenplay.characters),
         len(screenplay.acts),
         source,
+        preset_name,
     )
     return screenplay
