@@ -661,6 +661,29 @@
             color: var(--text-warm);
             font-size: 0.85rem;
             margin-top: 0.05rem;
+            cursor: text;
+            border-radius: 4px;
+            transition: background var(--transition);
+            position: relative;
+        }
+
+        .preview-event.dialogue .d-line:hover {
+            background: rgba(212, 163, 115, 0.06);
+        }
+
+        .preview-event.dialogue .d-line:hover::after {
+            content: '✏️';
+            position: absolute;
+            right: 0.3rem;
+            top: 0;
+            font-size: 0.65rem;
+            opacity: 0.4;
+        }
+
+        .preview-event.dialogue .d-line.editing {
+            background: rgba(212, 163, 115, 0.1);
+            outline: 1px solid var(--amber-deep);
+            padding: 0.1rem 1.5rem 0.1rem 1.4rem;
         }
 
         .preview-event.voiceover {
@@ -715,6 +738,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            margin-bottom: 0.15rem;
         }
 
         .char-stats .cs-name {
@@ -729,18 +753,19 @@
         .char-stats .cs-track {
             flex: 1;
             height: 18px;
-            background: var(--bg-surface);
-            border-radius: var(--radius-full);
+            background: #2a2520;
+            border-radius: 999px;
             overflow: hidden;
-            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
         }
 
         .char-stats .cs-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
-            border-radius: var(--radius-full);
-            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            min-width: 2px;
+            height: 18px;
+            background: linear-gradient(90deg, #A67C52, #D4A373);
+            border-radius: 999px;
+            transition: width 0.6s ease;
+            min-width: 4px;
+            box-shadow: 0 0 8px rgba(212, 163, 115, 0.25);
         }
 
         .char-stats .cs-count {
@@ -754,7 +779,7 @@
         .char-stats .cs-emotions {
             display: flex;
             gap: 0.3rem;
-            margin-top: 0.15rem;
+            margin: 0.1rem 0 0.3rem 4.5em;
             font-size: 0.65rem;
             color: var(--text-dim);
         }
@@ -1729,6 +1754,117 @@
 
         function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+        // ═══ Inline Edit (Preview → YAML sync) ═══
+        function editLine(el, ai, si, ei) {
+            if (el.classList.contains('editing')) return;
+            el.classList.add('editing');
+            el.contentEditable = true;
+            el.focus();
+            // Select all text
+            const sel = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            // Save on blur
+            el._saveEdit = function() {
+                el.classList.remove('editing');
+                el.contentEditable = false;
+                const newVal = el.textContent.trim();
+                const oldVal = D.acts[ai].scenes[si].events[ei].line || '';
+                if (newVal && newVal !== oldVal) {
+                    D.acts[ai].scenes[si].events[ei].line = newVal;
+                    Y = objToYaml(D);
+                    document.getElementById('yamlBlock').innerHTML = hl(Y);
+                    toast('✏️ 已更新');
+                } else if (!newVal) {
+                    el.textContent = oldVal;
+                }
+                el.removeEventListener('blur', el._saveEdit);
+                el.removeEventListener('keydown', el._keyEdit);
+            };
+            el._keyEdit = function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    el.blur();
+                }
+                if (e.key === 'Escape') {
+                    el.textContent = D.acts[ai].scenes[si].events[ei].line || '';
+                    el.removeEventListener('blur', el._saveEdit);
+                    el.removeEventListener('keydown', el._keyEdit);
+                    el.classList.remove('editing');
+                    el.contentEditable = false;
+                }
+            };
+            el.addEventListener('blur', el._saveEdit);
+            el.addEventListener('keydown', el._keyEdit);
+        }
+
+        // Simple YAML serializer for the data object
+        function objToYaml(obj, indent) {
+            indent = indent || 0;
+            const pad = '  '.repeat(indent);
+            let result = '';
+
+            if (obj === null || obj === undefined) return 'null\n';
+            if (typeof obj === 'string') {
+                // Quote if contains special chars
+                if (/[:\{\}\[\],&\*\?\|<>=!%@\`#\n]/.test(obj) || obj === '' || obj === 'true' || obj === 'false' || obj === 'null' || /^\d/.test(obj)) {
+                    return "'" + obj.replace(/'/g, "''") + "'\n";
+                }
+                return obj + '\n';
+            }
+            if (typeof obj === 'number' || typeof obj === 'boolean') return obj + '\n';
+
+            if (Array.isArray(obj)) {
+                if (obj.length === 0) return '[]\n';
+                for (const item of obj) {
+                    if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+                        // Object in array: write keys with dash on first
+                        const keys = Object.keys(item);
+                        if (keys.length > 0) {
+                            result += pad + '- ' + keys[0] + ': ';
+                            const firstVal = item[keys[0]];
+                            if (typeof firstVal === 'object' && firstVal !== null) {
+                                result += '\n';
+                                result += objToYaml(firstVal, indent + 2);
+                                for (let k = 1; k < keys.length; k++) {
+                                    result += pad + '  ' + keys[k] + ': ';
+                                    result += objToYaml(item[keys[k]], indent + 2).slice(pad.length + 2);
+                                }
+                            } else {
+                                result += objToYaml(firstVal, 0);
+                                for (let k = 1; k < keys.length; k++) {
+                                    result += pad + '  ' + keys[k] + ': ';
+                                    result += objToYaml(item[keys[k]], 0);
+                                }
+                            }
+                        }
+                    } else {
+                        result += pad + '- ' + objToYaml(item, indent + 2).slice(pad.length);
+                    }
+                }
+                return result;
+            }
+
+            // Plain object
+            const keys = Object.keys(obj);
+            if (keys.length === 0) return '{}\n';
+            for (const key of keys) {
+                if (key === undefined) continue;
+                result += pad + key + ': ';
+                const val = obj[key];
+                if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+                    const sub = objToYaml(val, indent + 2);
+                    result += sub.trimStart() ? '\n' + sub : '{}\n';
+                } else {
+                    result += objToYaml(val, indent + 2).slice(pad.length + key.length + 2);
+                }
+            }
+            return result;
+        }
+
         // ═══ Output Tab Switching ═══
         function switchOutTab(tab) {
             document.querySelectorAll('.otab').forEach(t => t.classList.remove('active'));
@@ -1781,7 +1917,28 @@
             if (!chars.length) return '';
 
             const maxCount = chars[0].count;
-            const allEmojis = ['😊','😢','😡','😱','😂','😏','😌','😤','😰','🤔','😐','😁','🥹','😭','😠','🤬','🥺','😎','🤗','😶'];
+            // Common Chinese emotion → emoji mapping
+            const emoMap = {
+                '调侃':'😏','苦笑':'😏','微笑':'😊','笑':'😊','喜悦':'😊','开心':'😊','高兴':'😊',
+                '愤怒':'😡','怒':'😡','生气':'😡','不满':'😤','不屑':'😏','冷笑':'😏',
+                '悲伤':'😢','伤感':'😢','难过':'😢','哭':'😢','哽咽':'😢','低声':'😌',
+                '担忧':'😰','焦虑':'😰','紧张':'😰','害怕':'😱','惊恐':'😱','惊讶':'😱',
+                '无奈':'😐','平静':'😐','冷淡':'😐','沉默':'😶','尴尬':'😅','苦笑':'😅',
+                '坚定':'😤','认真':'😤','严肃':'😐','深沉':'😌','沙哑':'😌','疲惫':'😮‍💨',
+                '轻声':'🤫','小声':'🤫','悄悄':'🤫','喊':'📢','大声':'📢','激动':'🔥',
+                '温柔':'🥰','深情':'🥰','感慨':'😌','叹息':'😮‍💨','犹豫':'🤔','试探':'🤔',
+            };
+            // Shorten long emotion text to key phrase
+            function shortEmo(text) {
+                // Try direct match
+                if (emoMap[text]) return emoMap[text];
+                // Try partial match
+                for (const [key, emoji] of Object.entries(emoMap)) {
+                    if (text.includes(key)) return emoji;
+                }
+                // Fallback: show first 4 chars
+                return text.length > 4 ? text.slice(0,4)+'…' : text;
+            }
 
             let html = '<div class="char-stats"><div class="cs-title">📊 角色台词分析</div><div class="cs-bar-wrap">';
 
@@ -1793,7 +1950,8 @@
                 if (emoParts.length) {
                     emoHtml = '<div class="cs-emotions">';
                     for (const [emo, cnt] of emoParts) {
-                        emoHtml += `<span>${emo} ${cnt}</span>`;
+                        const icon = shortEmo(emo);
+                        emoHtml += `<span>${icon}×${cnt}</span>`;
                     }
                     emoHtml += '</div>';
                 }
@@ -1824,10 +1982,12 @@
                 html += chars.map(c => `<span style="margin:0 0.3rem;">${c.name}</span>`).join('·');
                 html += '</div>';
             }
-            for (const act of data.acts) {
+            for (let ai = 0; ai < data.acts.length; ai++) {
+                const act = data.acts[ai];
                 html += `<div class="preview-act">`;
                 html += `<div class="preview-act-divider">— 第 ${act.act_number} 幕 —</div>`;
-                for (const scene of act.scenes) {
+                for (let si = 0; si < act.scenes.length; si++) {
+                    const scene = act.scenes[si];
                     html += `<div class="preview-scene">`;
                     html += `<div class="preview-scene-header">`;
                     html += `【场景 ${scene.scene_number}】${esc(scene.location)}`;
@@ -1836,8 +1996,8 @@
                     if (scene.characters_present && scene.characters_present.length) {
                         html += `<div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.5rem;">出场：${scene.characters_present.join('、')}</div>`;
                     }
-                    for (const evt of scene.events) {
-                        html += renderEvent(evt);
+                    for (let ei = 0; ei < scene.events.length; ei++) {
+                        html += renderEvent(scene.events[ei], ai, si, ei);
                     }
                     html += `</div>`;
                 }
@@ -1848,13 +2008,14 @@
             return html;
         }
 
-        function renderEvent(evt) {
+        function renderEvent(evt, ai, si, ei) {
             const t = evt.type || '';
             const c = evt.character || '';
             const l = evt.line || '';
             const d = evt.description || '';
             const e = evt.emotion || '';
             const txt = evt.text || '';
+            const editable = ai !== undefined && si !== undefined && ei !== undefined;
             switch (t) {
                 case 'stage_direction':
                     return `<div class="preview-event stage_direction">${esc(d)}</div>`;
@@ -1864,7 +2025,8 @@
                     let dt = `<div class="preview-event dialogue">`;
                     dt += `<span class="d-char">${esc(c)}</span>`;
                     if (e) dt += `<span class="d-emotion">（${esc(e)}）</span>`;
-                    dt += `<span class="d-line">${esc(l)}</span></div>`;
+                    const dbl = editable ? ` ondblclick="editLine(this,${ai},${si},${ei})"` : '';
+                    dt += `<span class="d-line"${dbl}>${esc(l)}</span></div>`;
                     return dt;
                 }
                 case 'voiceover': {
