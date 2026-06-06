@@ -233,6 +233,132 @@ def _extract_yaml(text: str) -> str:
     raise ValueError("AI 返回内容中未找到有效的 YAML 数据")
 
 
+def convert_novel_streaming(
+    novel_text: str,
+    *,
+    temperature: float = 0.3,
+    max_tokens: Optional[int] = None,
+    provider: Optional[str] = None,
+    api_key: Optional[str] = None,
+    model: Optional[str] = None,
+    preset: Optional[str] = None,
+):
+    """
+    流式转换：调用 AI 并将文本块逐个 yield。
+
+    Yields:
+        dict: {"type": "chunk", "text": "..."}  — 实时文本片段
+        dict: {"type": "done", "data": {...}, "stats": {...}, "yaml": "..."}  — 最终结果
+        dict: {"type": "error", "message": "..."}  — 错误信息
+    """
+    # ── 确定 API 参数 ──
+    if api_key and provider:
+        prov = PROVIDERS.get(provider)
+        if not prov:
+            yield {"type": "error", "message": f"不支持的模型提供商: {provider}"}
+            return
+        base_url = prov["base_url"]
+        effective_model = model or prov["default_model"]
+        effective_key = api_key
+    elif settings.DEEPSEEK_API_KEY:
+        base_url = settings.DEEPSEEK_BASE_URL
+        effective_model = model or settings.DEEPSEEK_MODEL
+        effective_key = settings.DEEPSEEK_API_KEY
+    else:
+        yield {"type": "error", "message": "未配置 API Key，请在设置中填入"}
+        return
+
+    # ── 确定风格预设 ──
+    if preset and preset in PRESETS:
+        preset_info = PRESETS[preset]
+        effective_prompt = SYSTEM_PROMPT + "\n" + preset_info["prompt_extra"]
+        preset_name = preset_info["name"]
+    else:
+        effective_prompt = SYSTEM_PROMPT
+        preset_name = "标准"
+
+    logger.info("流式 | model=%s | preset=%s", effective_model, preset_name)
+
+    # ── 创建客户端 ──
+    client = OpenAI(api_key=effective_key, base_url=base_url)
+
+    # ── 流式调用 API ──
+    try:
+        response = client.chat.completions.create(
+            model=effective_model,
+            messages=[
+                {"role": "system", "content": effective_prompt},
+                {"role": "user", "content": _build_user_prompt(novel_text)},
+            ],
+            temperature=temperature,
+            max_tokens=max_tokens or settings.MAX_OUTPUT_TOKENS,
+            stream=True,
+        )
+    except Exception as e:
+        logger.exception("API 调用失败")
+        yield {"type": "error", "message": f"API 调用失败: {e}"}
+        return
+
+    full_text = ""
+    for chunk in response:
+        if chunk.choices and len(chunk.choices) > 0:
+            delta = chunk.choices[0].delta
+            if delta and delta.content:
+                full_text += delta.content
+                yield {"type": "chunk", "text": delta.content}
+
+    if not full_text.strip():
+        yield {"type": "error", "message": "AI 返回内容为空"}
+        return
+
+    # ── 解析 YAML ──
+    try:
+        yaml_text = _extract_yaml(full_text)
+    except ValueError as e:
+        yield {"type": "error", "message": f"{e}"}
+        return
+
+    try:
+        data = yaml.safe_load(yaml_text)
+    except yaml.YAMLError as e:
+        yield {"type": "error", "message": f"YAML 解析失败: {e}"}
+        return
+
+    if not isinstance(data, dict):
+        yield {"type": "error", "message": f"YAML 根元素应为字典，实际得到 {type(data).__name__}"}
+        return
+
+    # ── 校验必填字段 ──
+    required = ["title", "characters", "acts"]
+    for field in required:
+        if field not in data:
+            yield {"type": "error", "message": f"缺少必填字段 '{field}'"}
+            return
+
+    try:
+        screenplay = Screenplay.model_validate(data)
+    except Exception as e:
+        yield {"type": "error", "message": f"数据校验失败: {e}"}
+        return
+
+    # ── 统计 ──
+    total_scenes = sum(len(s.get("scenes", [])) for s in data.get("acts", []))
+    total_events = sum(
+        len(s.get("events", []))
+        for a in data.get("acts", [])
+        for s in a.get("scenes", [])
+    )
+    stats = {
+        "characters": len(data.get("characters", [])),
+        "acts": len(data.get("acts", [])),
+        "scenes": total_scenes,
+        "events": total_events,
+    }
+
+    logger.info("流式完成: title=%s | stats=%s", screenplay.title, stats)
+    yield {"type": "done", "data": data, "stats": stats, "yaml": yaml_text}
+
+
 def convert_novel_to_screenplay(
     novel_text: str,
     *,
