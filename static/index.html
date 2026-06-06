@@ -688,6 +688,88 @@
             font-style: italic;
         }
 
+        /* ── Character Stats Panel ── */
+        .char-stats {
+            margin-top: 1.5rem;
+            padding: 1rem 1.1rem;
+            background: rgba(255,255,255,0.015);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-md);
+        }
+
+        .char-stats .cs-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-warm);
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.03em;
+        }
+
+        .char-stats .cs-bar-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .char-stats .cs-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .char-stats .cs-name {
+            font-size: 0.75rem;
+            color: var(--text-cream);
+            width: 4.5em;
+            text-align: right;
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+
+        .char-stats .cs-track {
+            flex: 1;
+            height: 18px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .char-stats .cs-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+            border-radius: var(--radius-full);
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            min-width: 2px;
+        }
+
+        .char-stats .cs-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            width: 3em;
+            flex-shrink: 0;
+            font-family: var(--font-mono);
+        }
+
+        .char-stats .cs-emotions {
+            display: flex;
+            gap: 0.3rem;
+            margin-top: 0.15rem;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+        }
+
+        .char-stats .cs-emotions span { cursor: default; }
+
+        .char-stats .cs-total {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
         .output-err {
             display: none;
             padding: 0.65rem 1rem;
@@ -1584,7 +1666,7 @@
             document.getElementById('schemaBody').classList.toggle('open');
         }
 
-        // ═══ Convert ═══
+                // ═══ Convert ═══
         async function convert() {
             const t = ni.value.trim();
             if (!t) return showErr('请先输入小说文本');
@@ -1608,19 +1690,13 @@
         }
 
         function showRes(y, st, src, data) {
-            D = data; // save for export
-
-            // YAML view
+            D = data;
             document.getElementById('yamlBlock').innerHTML = hl(y);
             document.getElementById('yamlBlock').style.display = 'block';
             document.getElementById('outputMask').style.display = 'none';
-
-            // Preview view
             if (data) {
                 document.getElementById('previewPanel').innerHTML = renderPreview(data);
             }
-
-            // Stats
             if (st) {
                 document.getElementById('sChars').textContent = st.characters;
                 document.getElementById('sActs').textContent = st.acts;
@@ -1628,13 +1704,9 @@
                 document.getElementById('sEvents').textContent = st.events;
                 document.getElementById('sSource').textContent = src || '默认';
             }
-
-            // Show result bar and tabs
             document.getElementById('resultBar').style.display = 'flex';
             document.getElementById('resultMeta').textContent = `✦ ${st?st.characters:'—'} 人 · ${st?st.acts:'—'} 幕 · ${st?st.events:'—'} 场`;
             document.getElementById('outputTabs').style.display = 'inline-flex';
-
-            // Default to YAML tab
             switchOutTab('yaml');
             toast('✅ 转换成功');
         }
@@ -1661,10 +1733,8 @@
         function switchOutTab(tab) {
             document.querySelectorAll('.otab').forEach(t => t.classList.remove('active'));
             document.querySelector(`.otab[data-otab="${tab}"]`).classList.add('active');
-
             const yamlEl = document.getElementById('yamlBlock');
             const previewEl = document.getElementById('previewPanel');
-
             if (tab === 'yaml') {
                 yamlEl.style.display = 'block';
                 previewEl.style.display = 'none';
@@ -1677,49 +1747,104 @@
             }
         }
 
+        // ═══ Character Stats ═══
+        function computeCharStats(data) {
+            const stats = {}; // name -> { count, emotions: { emotion: count } }
+            let totalLines = 0;
+
+            for (const act of data.acts || []) {
+                for (const scene of act.scenes || []) {
+                    for (const evt of scene.events || []) {
+                        if (evt.type === 'dialogue' && evt.character) {
+                            const name = evt.character;
+                            if (!stats[name]) stats[name] = { count: 0, emotions: {} };
+                            stats[name].count++;
+                            if (evt.emotion) {
+                                stats[name].emotions[evt.emotion] = (stats[name].emotions[evt.emotion] || 0) + 1;
+                            }
+                            totalLines++;
+                        }
+                    }
+                }
+            }
+
+            // Sort by count descending
+            const sorted = Object.entries(stats)
+                .map(([name, s]) => ({ name, ...s }))
+                .sort((a, b) => b.count - a.count);
+
+            return { chars: sorted, total: totalLines };
+        }
+
+        function renderCharStats(data) {
+            const { chars, total } = computeCharStats(data);
+            if (!chars.length) return '';
+
+            const maxCount = chars[0].count;
+            const allEmojis = ['😊','😢','😡','😱','😂','😏','😌','😤','😰','🤔','😐','😁','🥹','😭','😠','🤬','🥺','😎','🤗','😶'];
+
+            let html = '<div class="char-stats"><div class="cs-title">📊 角色台词分析</div><div class="cs-bar-wrap">';
+
+            for (const c of chars) {
+                const pct = maxCount > 0 ? Math.round((c.count / maxCount) * 100) : 0;
+                // Collect emotion emojis
+                const emoParts = Object.entries(c.emotions).slice(0, 4);
+                let emoHtml = '';
+                if (emoParts.length) {
+                    emoHtml = '<div class="cs-emotions">';
+                    for (const [emo, cnt] of emoParts) {
+                        emoHtml += `<span>${emo} ${cnt}</span>`;
+                    }
+                    emoHtml += '</div>';
+                }
+
+                html += `<div class="cs-row">`;
+                html += `<span class="cs-name">${esc(c.name)}</span>`;
+                html += `<div class="cs-track"><div class="cs-fill" style="width:${pct}%"></div></div>`;
+                html += `<span class="cs-count">${c.count}句</span>`;
+                html += `</div>`;
+                html += emoHtml;
+            }
+
+            html += `<div class="cs-total">共 ${total} 句台词</div>`;
+            html += '</div></div>';
+            return html;
+        }
+
         // ═══ Render Preview ═══
         function renderPreview(data) {
             if (!data || !data.acts || !data.acts.length) {
                 return '<div class="preview-empty">暂无剧本数据</div>';
             }
-
             const chars = data.characters || [];
             let html = '';
-
-            // Character reference
             if (chars.length) {
                 html += '<div style="margin-bottom:1rem;padding:0.5rem 0.75rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-sm);font-size:0.72rem;color:var(--text-muted);">';
                 html += '<span style="font-weight:600;color:var(--text-warm);">出场角色</span>：';
                 html += chars.map(c => `<span style="margin:0 0.3rem;">${c.name}</span>`).join('·');
                 html += '</div>';
             }
-
-            // Acts
             for (const act of data.acts) {
                 html += `<div class="preview-act">`;
                 html += `<div class="preview-act-divider">— 第 ${act.act_number} 幕 —</div>`;
-
                 for (const scene of act.scenes) {
                     html += `<div class="preview-scene">`;
                     html += `<div class="preview-scene-header">`;
                     html += `【场景 ${scene.scene_number}】${esc(scene.location)}`;
                     html += ` <span class="scene-meta">· ${esc(scene.time)}</span>`;
                     html += `</div>`;
-
                     if (scene.characters_present && scene.characters_present.length) {
                         html += `<div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:0.5rem;">出场：${scene.characters_present.join('、')}</div>`;
                     }
-
                     for (const evt of scene.events) {
                         html += renderEvent(evt);
                     }
-
-                    html += `</div>`; // .preview-scene
+                    html += `</div>`;
                 }
-
-                html += `</div>`; // .preview-act
+                html += `</div>`;
             }
-
+            // Append char stats
+            html += renderCharStats(data);
             return html;
         }
 
@@ -1730,32 +1855,24 @@
             const d = evt.description || '';
             const e = evt.emotion || '';
             const txt = evt.text || '';
-
             switch (t) {
                 case 'stage_direction':
                     return `<div class="preview-event stage_direction">${esc(d)}</div>`;
-
                 case 'action':
                     return `<div class="preview-event action"><span class="action-char">${esc(c)}</span> ${esc(d)}</div>`;
-
                 case 'dialogue': {
                     let dt = `<div class="preview-event dialogue">`;
                     dt += `<span class="d-char">${esc(c)}</span>`;
                     if (e) dt += `<span class="d-emotion">（${esc(e)}）</span>`;
-                    dt += `<span class="d-line">${esc(l)}</span>`;
-                    dt += `</div>`;
+                    dt += `<span class="d-line">${esc(l)}</span></div>`;
                     return dt;
                 }
-
                 case 'voiceover': {
                     let v = `<div class="preview-event voiceover">`;
                     v += `<span class="vo-label">${esc(c || '旁白')}</span>`;
-                    v += ` <span class="vo-char">(V.O.)</span>`;
-                    v += `<br>${esc(txt)}`;
-                    v += `</div>`;
+                    v += ` <span class="vo-char">(V.O.)</span><br>${esc(txt)}</div>`;
                     return v;
                 }
-
                 default:
                     return `<div class="preview-event">${esc(JSON.stringify(evt))}</div>`;
             }
