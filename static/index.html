@@ -1801,7 +1801,11 @@
                 <div class="folio">
                     <div class="folio-header">
                         <span><span class="icon">📄</span> 小说原文</span>
-                        <button class="btn btn-ghost btn-xs" onclick="loadSample()">加载示例</button>
+                        <div style="display:flex;gap:0.25rem;">
+                            <button class="btn btn-ghost btn-xs" onclick="pickFile()">📁 选择文件</button>
+                            <button class="btn btn-ghost btn-xs" onclick="loadSample()">加载示例</button>
+                        </div>
+                        <input type="file" id="filePicker" accept=".txt,.docx,.md" style="display:none" onchange="handleFilePick(event)">
                     </div>
                     <div class="folio-body" id="inputArea">
                         <div class="drop-zone">
@@ -2080,6 +2084,20 @@
             fs.sort((a,b) => a.name.localeCompare(b.name));
             ni.value = (await Promise.all(fs.map(f => f.text()))).join('\n\n');
             updateCount(); hideErr(); toast(`✅ 已加载 ${fs.length} 个文件`);
+        }
+
+        // ═══ File Picker ═══
+        function pickFile() {
+            document.getElementById('filePicker').click();
+        }
+
+        function handleFilePick(e) {
+            const file = e.target.files[0];
+            if (file) {
+                ldFile(file);
+                // Reset so same file can be picked again
+                e.target.value = '';
+            }
         }
 
         // ═══ Sample ═══
