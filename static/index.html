@@ -1001,6 +1001,29 @@
             font-style: italic;
         }
 
+        .loading-reel .reel-progress {
+            width: 160px;
+            height: 3px;
+            background: var(--bg-surface);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.2rem;
+        }
+
+        .loading-reel .reel-progress .rp-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--amber-deep), var(--amber));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .loading-reel .reel-chapter {
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            margin-top: -0.3rem;
+        }
+
         /* ── Generic Buttons ── */
         .btn {
             display: inline-flex;
@@ -1312,6 +1335,296 @@
         .back-top.visible:hover { transform: translateY(-2px); }
 
         /* ════════════════════════════════════════════════════════════
+           Landing Page
+           ════════════════════════════════════════════════════════════ */
+
+        .lp-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 0;
+        }
+
+        .lp-section:first-child { padding-top: 1rem; }
+
+        /* ── Hero ── */
+        .lp-hero {
+            text-align: center;
+            padding: 2.5rem 0 3rem;
+            position: relative;
+        }
+
+        .lp-hero .lp-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.75rem;
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-full);
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            font-style: italic;
+            color: var(--amber);
+            margin-bottom: 1.25rem;
+            letter-spacing: 0.04em;
+        }
+
+        .lp-hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(40px, 7vw, 64px);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: var(--text-cream);
+            margin-bottom: 1rem;
+        }
+
+        .lp-hero h1 .hl {
+            font-style: italic;
+            color: var(--amber);
+        }
+
+        .lp-hero p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 540px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .lp-hero .lp-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .lp-hero .lp-actions .btn-start {
+            padding: 0.7rem 2.2rem;
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--bg-deep);
+            background: var(--amber-gradient);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-spring);
+            box-shadow: 0 2px 24px rgba(212,163,115,0.15);
+            letter-spacing: 0.02em;
+        }
+
+        .lp-hero .lp-actions .btn-start:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 32px rgba(212,163,115,0.25);
+        }
+
+        .lp-hero .lp-actions .btn-ghost-lp {
+            padding: 0.7rem 1.8rem;
+            font-family: var(--font-body);
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .lp-hero .lp-actions .btn-ghost-lp:hover {
+            color: var(--text-warm);
+            border-color: var(--text-muted);
+        }
+
+        /* ── Features Grid ── */
+        .lp-features {
+            padding: 2.5rem 0;
+            border-top: 1px solid var(--border-soft);
+        }
+
+        .lp-features h2 {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 700;
+            color: var(--text-cream);
+            margin-bottom: 0.5rem;
+        }
+
+        .lp-features .lp-sub {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .lp-feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .lp-feature-grid { grid-template-columns: 1fr; }
+        }
+
+        .lp-feature-grid .f-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            transition: all var(--transition);
+        }
+
+        .lp-feature-grid .f-card:hover {
+            border-color: var(--border-accent);
+            transform: translateY(-2px);
+            box-shadow: var(--glow-amber);
+        }
+
+        .lp-feature-grid .f-card .f-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .lp-feature-grid .f-card h3 {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-cream);
+            margin-bottom: 0.3rem;
+        }
+
+        .lp-feature-grid .f-card p {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ── How It Works ── */
+        .lp-how {
+            padding: 2.5rem 0;
+            border-top: 1px solid var(--border-soft);
+            text-align: center;
+        }
+
+        .lp-how h2 {
+            font-family: var(--font-display);
+            font-size: clamp(22px, 3.5vw, 32px);
+            font-weight: 700;
+            color: var(--text-cream);
+            margin-bottom: 2rem;
+        }
+
+        .lp-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 600px) {
+            .lp-steps { grid-template-columns: 1fr; gap: 1rem; }
+        }
+
+        .lp-steps .step {
+            text-align: center;
+        }
+
+        .lp-steps .step .step-num {
+            width: 36px; height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.6rem;
+            background: var(--amber-gradient);
+            border-radius: 50%;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--bg-deep);
+        }
+
+        .lp-steps .step h4 {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-cream);
+            margin-bottom: 0.25rem;
+        }
+
+        .lp-steps .step p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ── CTA ── */
+        .lp-cta {
+            text-align: center;
+            padding: 2.5rem 0;
+            border-top: 1px solid var(--border-soft);
+        }
+
+        .lp-cta h2 {
+            font-family: var(--font-display);
+            font-size: clamp(22px, 3.5vw, 32px);
+            font-weight: 700;
+            color: var(--text-cream);
+            margin-bottom: 0.5rem;
+        }
+
+        .lp-cta p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .lp-cta .btn-cta {
+            padding: 0.8rem 2.5rem;
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--bg-deep);
+            background: var(--amber-gradient);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-spring);
+            box-shadow: 0 2px 24px rgba(212,163,115,0.15);
+            letter-spacing: 0.02em;
+        }
+
+        .lp-cta .btn-cta:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 32px rgba(212,163,115,0.25);
+        }
+
+        .lp-stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .lp-stats-row .lp-stat {
+            text-align: center;
+        }
+
+        .lp-stats-row .lp-stat .lp-stat-num {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--amber);
+        }
+
+        .lp-stats-row .lp-stat .lp-stat-lbl {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+        }
+
+        /* ════════════════════════════════════════════════════════════
            Responsive
            ════════════════════════════════════════════════════════════ */
 
@@ -1348,7 +1661,8 @@
             </a>
 
             <nav class="top-nav">
-                <button class="active" data-tab="convert" onclick="switchTab('convert')">转换</button>
+                <button class="active" data-tab="home" onclick="switchTab('home')">首页</button>
+                <button data-tab="convert" onclick="switchTab('convert')">转换</button>
                 <button data-tab="settings" onclick="switchTab('settings')">设置</button>
             </nav>
 
@@ -1361,9 +1675,108 @@
         </header>
 
         <!-- ══════════════════════════════════════════════════════════
+             PAGE: 首页 (Landing)
+             ══════════════════════════════════════════════════════════ -->
+        <div class="page active" id="page-home">
+
+            <!-- Hero -->
+            <div class="lp-section lp-hero">
+                <div class="lp-badge">✦ AI-Powered Screenplay Generator</div>
+                <h1>小说落笔，<span class="hl">剧本即现</span></h1>
+                <p>将小说章节自动转换为结构化 YAML 剧本。<br>支持多种剧本风格，一键导出，让改编从初稿开始。</p>
+                <div class="lp-actions">
+                    <button class="btn-start" onclick="switchTab('convert')">✦ 开始转换</button>
+                    <button class="btn-ghost-lp" onclick="document.getElementById('lp-features').scrollIntoView({behavior:'smooth'})">探索功能</button>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="lp-section lp-features" id="lp-features">
+                <h2>不止是转换</h2>
+                <p class="lp-sub">从文本到剧本，AI 帮你完成最耗时的结构化工作</p>
+                <div class="lp-feature-grid">
+                    <div class="f-card">
+                        <div class="f-icon">🎭</div>
+                        <h3>多风格预设</h3>
+                        <p>电影剧本、电视剧本、舞台剧、短视频脚本，四种风格一键切换，AI 按不同规范输出。</p>
+                    </div>
+                    <div class="f-card">
+                        <div class="f-icon">📖</div>
+                        <h3>可视化预览</h3>
+                        <p>YAML 与剧本预览双视图，台词可双击编辑，修改自动同步，从查看器到编辑器。</p>
+                    </div>
+                    <div class="f-card">
+                        <div class="f-icon">📊</div>
+                        <h3>角色分析</h3>
+                        <p>自动统计台词数量、情感分布，用数据辅助剧本打磨，一目了然。</p>
+                    </div>
+                    <div class="f-card">
+                        <div class="f-icon">📤</div>
+                        <h3>多格式导出</h3>
+                        <p>HTML 精美排版、Markdown 导入笔记、纯文本通用格式，满足不同工作流。</p>
+                    </div>
+                    <div class="f-card">
+                        <div class="f-icon">🔑</div>
+                        <h3>自带 API</h3>
+                        <p>支持 DeepSeek、Kimi、GLM、通义千问、豆包，用户可使用自己的 API Key，灵活省钱。</p>
+                    </div>
+                    <div class="f-card">
+                        <div class="f-icon">📂</div>
+                        <h3>文件拖放</h3>
+                        <p>支持 .txt / .docx 拖入解析，文件夹批量导入，无需复制粘贴。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <div class="lp-section lp-how">
+                <h2>三步完成</h2>
+                <div class="lp-steps">
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <h4>粘贴小说</h4>
+                        <p>输入小说文本或拖入文件</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <h4>选择风格</h4>
+                        <p>电影 / 电视剧 / 舞台剧 / 短视频</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <h4>一键转换</h4>
+                        <p>获取结构化剧本，预览并导出</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="lp-section lp-cta">
+                <h2>准备好开始了吗？</h2>
+                <p>免费使用，自带 API Key 即可。</p>
+                <button class="btn-cta" onclick="switchTab('convert')">✦ 开始转换</button>
+                <div class="lp-stats-row">
+                    <div class="lp-stat">
+                        <div class="lp-stat-num">7</div>
+                        <div class="lp-stat-lbl">模型提供商</div>
+                    </div>
+                    <div class="lp-stat">
+                        <div class="lp-stat-num">4</div>
+                        <div class="lp-stat-lbl">剧本风格</div>
+                    </div>
+                    <div class="lp-stat">
+                        <div class="lp-stat-num">4</div>
+                        <div class="lp-stat-lbl">导出格式</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
              PAGE: 转换 (Convert)
              ══════════════════════════════════════════════════════════ -->
-        <div class="page active" id="page-convert">
+        <div class="page" id="page-convert">
 
             <!-- Hero -->
             <div class="page-hero">
@@ -1429,7 +1842,9 @@
                         <div class="preview-panel" id="previewPanel"></div>
                         <div class="loading-reel" id="loadingReel">
                             <div class="reel"></div>
-                            <span class="reel-txt">AI 正在分析小说结构…</span>
+                            <span class="reel-txt" id="reelTxt">AI 正在分析小说结构…</span>
+                            <div class="reel-chapter" id="reelChapter"></div>
+                            <div class="reel-progress"><div class="rp-fill" id="reelProgress"></div></div>
                         </div>
                     </div>
                     <div class="output-err" id="outputErr"></div>
@@ -1695,7 +2110,7 @@
         async function convert() {
             const t = ni.value.trim();
             if (!t) return showErr('请先输入小说文本');
-            setLoad(true); hideErr(); hideOut();
+            setLoad(true, t); hideErr(); hideOut();
 
             const s = getS();
             const b = { novel_text: t, temperature: 0.3 };
@@ -2255,10 +2670,58 @@
         }
 
         // ═══ UI Helpers ═══
-        function setLoad(v) {
-            document.getElementById('convertBtn').classList.toggle('load', v);
-            document.getElementById('convertBtn').disabled = v;
-            document.getElementById('loadingReel').classList.toggle('on', v);
+        function countChapters(text) {
+            // Match Chinese chapter markers: 第X章, 第X节, Chapter X, or numbered lines like "第一章"
+            const matches = text.match(/(第[\d一二三四五六七八九十百千]+[章节篇回]|Chapter\s+\d+|CHAPTER\s+\d+)/g);
+            return matches ? matches.length : Math.max(1, Math.ceil(text.length / 800));
+        }
+
+        let _progressTimer = null;
+
+        function setLoad(v, text) {
+            const btn = document.getElementById('convertBtn');
+            const reel = document.getElementById('loadingReel');
+            const txt = document.getElementById('reelTxt');
+            const ch = document.getElementById('reelChapter');
+            const bar = document.getElementById('reelProgress');
+
+            btn.classList.toggle('load', v);
+            btn.disabled = v;
+            reel.classList.toggle('on', v);
+
+            if (_progressTimer) { clearInterval(_progressTimer); _progressTimer = null; }
+
+            if (v && text) {
+                const total = countChapters(text);
+                let current = 1;
+                // Use the loading text to show chapter progress if we detected chapters
+                if (total > 1) {
+                    txt.textContent = `正在分析小说结构…`;
+                } else {
+                    txt.textContent = `AI 正在分析…`;
+                }
+                ch.textContent = total > 1 ? `第 1 / ${total} 章` : '';
+                bar.style.width = '5%';
+
+                // Animate progress over expected 20s
+                let elapsed = 0;
+                const duration = Math.min(25, Math.max(8, Math.floor(text.length / 150)));
+                const interval = 300;
+                _progressTimer = setInterval(() => {
+                    elapsed += interval / 1000;
+                    const pct = Math.min(92, (elapsed / duration) * 85 + 5);
+                    bar.style.width = pct + '%';
+                    if (total > 1) {
+                        const chapter = Math.min(total, Math.max(1, Math.floor((elapsed / duration) * total) + 1));
+                        ch.textContent = `第 ${chapter} / ${total} 章`;
+                    }
+                }, interval);
+            } else if (!v) {
+                txt.textContent = 'AI 正在分析小说结构…';
+                ch.textContent = '';
+                bar.style.width = '0%';
+                if (_progressTimer) { clearInterval(_progressTimer); _progressTimer = null; }
+            }
         }
         function showErr(m) { const e = document.getElementById('outputErr'); e.textContent = m; e.style.display = 'block'; }
         function hideErr() { document.getElementById('outputErr').style.display = 'none'; }
