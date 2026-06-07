@@ -46,7 +46,7 @@
 | **AI** | DeepSeek / Kimi / GLM / 通义千问 / 豆包（OpenAI 兼容 SDK） |
 | **前端** | 纯 HTML + CSS + JS（自定义设计系统） |
 | **数据** | YAML（结构化剧本）+ Pydantic 校验 |
-| **部署** | Docker / systemd + Nginx |
+| **部署** | Docker / systemd |
 
 ---
 
@@ -131,6 +131,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/path/to/xenginner
+EnvironmentFile=/path/to/xenginner/.env
 ExecStart=/usr/local/bin/uvicorn main:app --host 0.0.0.0 --port 8000
 Restart=always
 User=root
