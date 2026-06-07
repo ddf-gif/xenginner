@@ -11,10 +11,12 @@ API 路由定义。
 """
 
 import logging
+import time
+from collections import defaultdict
 from pathlib import Path
 
 import yaml
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Request
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
@@ -23,6 +25,28 @@ from app.services.file_parser import extract_text_from_docx_bytes
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
+
+# ── 简单的 IP 频率限制 ──
+_rate_limit = defaultdict(list)  # ip -> [timestamps]
+RATE_LIMIT_MAX = 10              # 每个 IP 每天的免费调用次数
+RATE_LIMIT_WINDOW = 86400        # 24 小时（秒）
+
+
+def check_rate_limit(ip: str, is_using_own_key: bool) -> None:
+    """检查 IP 调用频率，使用自己 Key 的不限制。"""
+    if is_using_own_key:
+        return
+    now = time.time()
+    window = RATE_LIMIT_WINDOW
+    # 清理过期记录
+    _rate_limit[ip] = [t for t in _rate_limit[ip] if now - t < window]
+    if len(_rate_limit[ip]) >= RATE_LIMIT_MAX:
+        remaining = int(window - (now - _rate_limit[ip][0]))
+        raise HTTPException(
+            status_code=429,
+            detail=f"免费调用已达上限（{RATE_LIMIT_MAX}次/天），请稍后再试，或在上方「设置」中填入自己的 API Key",
+        )
+    _rate_limit[ip].append(now)
 
 
 # ── 请求 / 响应模型 ────────────────────────────────────
@@ -53,7 +77,7 @@ class ConvertResponse(BaseModel):
 
 
 @router.post("/convert", response_model=ConvertResponse)
-async def convert(req: ConvertRequest):
+async def convert(req: ConvertRequest, request: Request):
     """
     将小说文本转换为结构化 YAML 剧本。
 
@@ -74,6 +98,10 @@ async def convert(req: ConvertRequest):
     """
     if not req.novel_text.strip():
         raise HTTPException(status_code=400, detail="小说文本不能为空")
+
+    # 频率限制：用自己的 Key 不限制
+    client_ip = request.client.host if request.client else "unknown"
+    check_rate_limit(client_ip, bool(req.api_key))
 
     try:
         screenplay = convert_novel_to_screenplay(
