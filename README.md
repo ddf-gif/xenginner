@@ -10,6 +10,10 @@
 
 # [http://49.233.93.220:8000](http://49.233.93.220:8000)
 
+### 🎬 Demo 视频
+
+# [📺 点击观看作品演示](https://www.bilibili.com/video/BV1k3Eb6AET1/?spm_id_from=333.1387.homepage.video_card.click&vd_source=7800ac290873999daa9270adf898de07)
+
 > ⚠️ 免费额度：每 IP 每天 10 次调用。高频使用请在「设置」中填入自己的 API Key。
 
 <br>
